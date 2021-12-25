@@ -1,0 +1,19 @@
+/*
+pub struct MapGenSettings {
+    pub seed: u64,
+    pub iterations: u32,
+    pub map_size: (u32,u32),
+    pub room_size: Range<u32>,
+    pub monsters_per_room: Range<u32>,
+    pub items_per_room: Range<u32>,
+}
+*/
+
+MapGenSettings (
+    seed: 4,
+    iterations: 15,
+    map_size: (80,40),
+    room_size: Range( start: 3, end: 15),
+//    monsters_per_room: [0,4],
+//    items_per_room: [0,2],
+)
