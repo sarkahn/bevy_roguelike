@@ -111,10 +111,4 @@ mod test {
         assert_eq!(movement.0, (0, 0));
         assert_eq!(pos.0, (0, 0));
     }
-
-    #[test]
-    fn deserialize() {
-        let str = "(Position(15), Movement())";
-        let de: (Position, Movement) = from_str(str).unwrap();
-    }
 }
