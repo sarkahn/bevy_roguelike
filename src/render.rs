@@ -2,23 +2,23 @@ use bevy::{ecs::schedule::ShouldRun, prelude::*};
 use bevy_ascii_terminal::*;
 use serde::Deserialize;
 
-use crate::{map::{Map, MapTile}, movement::Position};
-
+use crate::{
+    map::{Map, MapTile},
+    movement::Position,
+};
 
 /// Plugin managing game rendering systems
 pub struct RenderPlugin;
 impl Plugin for RenderPlugin {
     fn build(&self, app: &mut bevy::prelude::AppBuilder) {
-        app
-        .add_system_set(
+        app.add_system_set(
             SystemSet::new()
                 .with_run_criteria(should_render.system())
-                .with_system(render.system())
+                .with_system(render.system()),
         )
         .add_plugin(TerminalPlugin);
     }
 }
-
 
 #[derive(Debug)]
 pub struct Renderable {
@@ -32,7 +32,6 @@ fn render(
     q_entities: Query<(&Renderable, &Position)>,
     mut q_render_terminal: Query<&mut Terminal>,
 ) {
-
     let mut term = match q_render_terminal.single_mut() {
         Ok(term) => term,
         Err(_) => return,
@@ -55,13 +54,10 @@ fn render(
     render_full_map(map, &mut term);
 }
 
-fn render_full_map(
-    map: &Map,
-    term: &mut Terminal,
-) {
+fn render_full_map(map: &Map, term: &mut Terminal) {
     for x in 0..map.width() {
         for y in 0..map.height() {
-            let tile: Tile = match map[(x,y)] {
+            let tile: Tile = match map[(x, y)] {
                 MapTile::Wall => Tile {
                     glyph: '#',
                     fg_color: GREEN,
@@ -73,15 +69,13 @@ fn render_full_map(
                     bg_color: BLACK,
                 },
             };
-            term.put_tile((x as i32,y as i32), tile); 
+            term.put_tile((x as i32, y as i32), tile);
         }
     }
 }
 
-fn render_all_entities<'a, Entities>(
-    term: &mut Terminal, 
-    entities: Entities,
-) where
+fn render_all_entities<'a, Entities>(term: &mut Terminal, entities: Entities)
+where
     Entities: Iterator<Item = (&'a Renderable, &'a Position)>,
 {
     for (r, pos) in entities {
