@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use bevy::math::IVec2;
+use bevy::math::{IVec2};
 
 /// A rectangle on a grid.
 ///
@@ -122,9 +122,18 @@ impl Iterator for RectIterator {
 
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(i) = (self.current..self.length).next() {
+            self.current += 1;
             let xy = IVec2::new(i % self.width, i / self.width);
+
             return Some(self.min + xy);
         }
+        // for i in self.current..self.length {
+        //     self.current += 1;
+
+        //     let xy = IVec2::new(i % self.width, i / self.width);
+
+        //     return Some(self.min + xy);
+        // }
         None
     }
 }

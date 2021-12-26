@@ -12,6 +12,7 @@ mod player;
 mod render;
 mod shapes;
 mod visibility;
+mod map_state;
 
 use map::*;
 use player::PlayerBundle;
@@ -48,6 +49,7 @@ fn main() {
         .add_plugin(movement::MovementPlugin)
         .add_plugin(visibility::VisiblityPlugin)
         .add_plugin(player::PlayerPlugin)
+        .add_plugin(map_state::MapStatePlugin)
         .add_startup_system(setup.system())
         .run();
 }

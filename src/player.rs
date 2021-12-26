@@ -3,8 +3,8 @@ use bevy_ascii_terminal::*;
 
 use crate::{
     bundle::MovingEntityBundle,
-    movement::Movement,
-    visibility::{MapMemory, MapView, ViewRange},
+    movement::{Movement, Position},
+    visibility::{MapMemory, MapView, ViewRange}, map_state::{MapObstacles, MapActors}, map::Map, monster::Monster,
 };
 
 pub struct PlayerPlugin;
@@ -40,15 +40,39 @@ impl Default for PlayerBundle {
     }
 }
 
-fn player_input(mut q_player: Query<&mut Movement, With<Player>>, input: Res<Input<KeyCode>>) {
-    if let Ok(mut movement) = q_player.single_mut() {
-        let input = read_movement(&input);
+fn player_input(
+    mut q_player: Query<(&Position, &mut Movement), With<Player>>,
+    q_map: Query<&Map>, 
+    q_monsters: Query<&Name, With<Monster>>,
+    input: Res<Input<KeyCode>>,
+    obstacles: Res<MapObstacles>,
+    actors: Res<MapActors>,
+) {
+    if let Ok((pos, mut movement)) = q_player.single_mut() {
+        if let Ok(map) = q_map.single() {
+            let input = read_movement(&input);
 
-        if input.cmpeq(IVec2::ZERO).all() {
-            return;
+            if input.cmpeq(IVec2::ZERO).all() {
+                return;
+            }
+    
+            let curr = IVec2::from(pos.0);
+    
+            let next = curr + input;
+    
+            let next_i = map.to_index(next.as_u32().into());
+
+            if obstacles.0[next_i] {
+                if let Some(entity) = actors.0[next_i] {
+                    if let Ok(name) = q_monsters.get(entity) {
+                        println!("You bumped into {}", name.as_str());
+                        return;
+                    }
+                }
+            }
+    
+            movement.0 = input.into();
         }
-
-        movement.0 = input.into();
     }
 }
 

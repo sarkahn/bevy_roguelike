@@ -1,4 +1,4 @@
-use std::ops::{Index, IndexMut};
+use std::{ops::{Index, IndexMut}, slice::Iter};
 
 use bevy::{
     math::{IVec2, UVec2},
@@ -65,6 +65,14 @@ impl Map {
         let (x, y) = xy;
         (y * self.size.x + x) as usize
     }
+    
+    // #[inline]
+    // pub fn to_xy(&self, i: usize) -> UVec2 {
+    //     let i = i as u32;
+    //     let x = i % self.size.x;
+    //     let y = i / self.size.x;
+    //     UVec2::new(x,y)
+    // }
 
     pub fn is_in_bounds(&self, p: IVec2) -> bool {
         p.cmpge(IVec2::ZERO).all() && p.cmplt(self.size.as_i32()).all()
@@ -72,6 +80,10 @@ impl Map {
 
     pub fn get(&self, p: IVec2) -> MapTile {
         self.tiles[self.to_index(p.as_u32().into())]
+    }
+
+    pub fn iter(&self) -> Iter<MapTile> {
+        self.tiles.iter()
     }
 }
 
@@ -185,7 +197,7 @@ fn generate_rooms(
 
         let new_room = Rect::from_position_size((x as i32, y as i32), (w as i32, h as i32));
 
-        //println!("Creating room {}", new_room);
+        // //println!("Creating room {}", new_room);
 
         let mut ok = true;
 
