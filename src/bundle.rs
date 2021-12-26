@@ -1,10 +1,8 @@
+use bevy::prelude::*;
+use bevy_ascii_terminal::{TileColor, BLACK};
 
-use bevy::prelude::Bundle;
-use bevy_ascii_terminal::BLACK;
-use bevy_ascii_terminal::TileColor;
+use crate::{render::Renderable, movement::{Position, Movement}};
 
-use crate::render::*;
-use crate::movement::*;
 
 #[derive(Debug, Bundle)]
 pub struct MovingEntityBundle {

@@ -25,6 +25,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a13739d7177fbd22bb0ed28badfff9f372f8bef46c863db4e1c6248f6b223b6e"
 
 [[package]]
+name = "adam_fov_rs"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "01b25779b985e128f7ec32386a5264c5503188fef4d370778ca961b372d0ff30"
+dependencies = [
+ "glam 0.13.1",
+]
+
+[[package]]
 name = "adler32"
 version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -551,6 +560,7 @@ dependencies = [
 name = "bevy_rust_roguelike_tut"
 version = "0.1.0"
 dependencies = [
+ "adam_fov_rs",
  "bevy",
  "bevy_ascii_terminal",
  "bevy_tiled_camera",

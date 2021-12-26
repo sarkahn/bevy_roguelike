@@ -1,71 +1,76 @@
 use std::fmt::Display;
 
-use bevy::math::UVec2;
+use bevy::math::{IVec2};
 
 /// A rectangle on a grid.
 ///
 /// Points contained in the rect can be iterated over.
 pub struct Rect {
-    pub min: UVec2,
-    pub max: UVec2,
+    pub min: IVec2,
+    pub max: IVec2,
 }
 
 impl Rect {
     /// Construct a rect from it's position and size.
-    pub fn from_position_size(pos: (u32, u32), size: (u32, u32)) -> Self {
-        let pos = UVec2::from(pos);
-        let size = UVec2::from(size);
+    pub fn from_position_size(pos: (i32, i32), size: (i32, i32)) -> Self {
+        let pos = IVec2::from(pos);
+        let size = IVec2::from(size);
         Rect {
             min: pos,
             max: pos + size,
         }
     }
 
+    #[allow(dead_code)]
     /// Construct a rect from it's min and max extents.
-    pub fn from_extents(min: (u32, u32), max: (u32, u32)) -> Self {
+    pub fn from_extents(min: (i32, i32), max: (i32, i32)) -> Self {
         Rect {
-            min: UVec2::from(min),
-            max: UVec2::from(max),
+            min: IVec2::from(min),
+            max: IVec2::from(max),
         }
     }
 
-    pub fn size(&self) -> (u32, u32) {
+    pub fn size(&self) -> IVec2 {
         (self.max - self.min).into()
     }
 
-    pub fn width(&self) -> u32 {
+    pub fn width(&self) -> i32 {
         self.max.x - self.min.x
     }
 
-    pub fn height(&self) -> u32 {
+    pub fn height(&self) -> i32 {
         self.max.y - self.min.y
     }
 
-    pub fn set_size(&mut self, new_size: (u32, u32)) {
-        let new_size = UVec2::from(new_size);
+    #[allow(dead_code)]
+    pub fn set_size(&mut self, new_size: (i32, i32)) {
+        let new_size = IVec2::from(new_size);
         self.max = self.min + new_size;
     }
 
-    pub fn position(&self) -> (u32, u32) {
+    #[allow(dead_code)]
+    pub fn position(&self) -> IVec2 {
         self.min.into()
     }
 
-    pub fn set_position(&mut self, new_pos: (u32, u32)) {
-        let new_pos = UVec2::from(new_pos);
-        let size = UVec2::from(self.size());
+    #[allow(dead_code)]
+    pub fn set_position(&mut self, new_pos: (i32, i32)) {
+        let new_pos = IVec2::from(new_pos);
+        let size = IVec2::from(self.size());
         self.min = new_pos;
         self.max = new_pos + size;
     }
 
-    pub fn center(&self) -> (u32, u32) {
-        let size = UVec2::from(self.size());
+    pub fn center(&self) -> IVec2 {
+        let size = IVec2::from(self.size());
         (self.min + size / 2).into()
     }
 
+    #[allow(dead_code)]
     /// Move the rect's center without affecting it's position or size.
-    pub fn set_center(&mut self, pos: (u32, u32)) {
-        let pos = UVec2::from(pos);
-        let size = UVec2::from(self.size());
+    pub fn set_center(&mut self, pos: (i32, i32)) {
+        let pos = IVec2::from(pos);
+        let size = IVec2::from(self.size());
         let pos = pos - size / 2;
         self.set_position(pos.into());
     }
@@ -95,10 +100,10 @@ impl Display for Rect {
 }
 
 pub struct RectIterator {
-    min: UVec2,
-    width: u32,
-    current: u32,
-    length: u32,
+    min: IVec2,
+    width: i32,
+    current: i32,
+    length: i32,
 }
 
 impl RectIterator {
@@ -113,13 +118,13 @@ impl RectIterator {
 }
 
 impl Iterator for RectIterator {
-    type Item = (u32, u32);
+    type Item = IVec2;
 
     fn next(&mut self) -> Option<Self::Item> {
         for i in self.current..self.length {
             self.current += 1;
 
-            let xy = UVec2::new(i % self.width, i / self.width);
+            let xy = IVec2::new(i % self.width, i / self.width);
 
             return Some((self.min + xy).into());
         }
@@ -129,13 +134,15 @@ impl Iterator for RectIterator {
 
 #[cfg(test)]
 mod test {
+    use bevy::math::IVec2;
+
     use super::Rect;
 
     #[test]
     fn init() {
         let rect = Rect::from_position_size((5, 5), (5, 5));
-        assert_eq!((5, 5), rect.position());
-        assert_eq!((5, 5), rect.size());
+        assert_eq!((5, 5), rect.position().into());
+        assert_eq!((5, 5), rect.size().into());
     }
 
     #[test]
@@ -143,15 +150,15 @@ mod test {
         let size = 10;
         let rect = Rect::from_position_size((0, 0), (size, size));
 
-        let points: Vec<(u32, u32)> = rect.iter().collect();
+        let points: Vec<_> = rect.iter().collect();
 
         for x in 0..size {
             for y in 0..size {
-                assert!(points.contains(&(x, y)));
+                assert!(points.contains(&IVec2::new(x, y)));
             }
         }
 
-        assert_eq!(size * size, points.len() as u32);
+        assert_eq!(size * size, points.len() as i32);
     }
 
     #[test]
@@ -181,9 +188,9 @@ mod test {
 
         r.set_center((30, 30));
 
-        assert_eq!((30, 30), r.center());
+        assert_eq!((30, 30), r.center().into());
         assert_eq!((25, 25), r.min.into());
         assert_eq!((35, 35), r.max.into());
-        assert_eq!((10, 10), r.size());
+        assert_eq!((10, 10), r.size().into());
     }
 }

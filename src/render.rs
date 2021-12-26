@@ -1,10 +1,10 @@
 use bevy::{ecs::schedule::ShouldRun, prelude::*};
 use bevy_ascii_terminal::*;
-use serde::Deserialize;
+
 
 use crate::{
     map::{Map, MapTile},
-    movement::Position,
+    movement::Position, visibility::{MapView, VIEW_SYSTEM_LABEL, MapMemory}, player::Player,
 };
 
 /// Plugin managing game rendering systems
@@ -14,7 +14,8 @@ impl Plugin for RenderPlugin {
         app.add_system_set(
             SystemSet::new()
                 .with_run_criteria(should_render.system())
-                .with_system(render.system()),
+                .with_system(render.system()
+            .after(VIEW_SYSTEM_LABEL)),
         )
         .add_plugin(TerminalPlugin);
     }
@@ -30,6 +31,8 @@ pub struct Renderable {
 fn render(
     q_map: Query<&Map>,
     q_entities: Query<(&Renderable, &Position)>,
+    q_player: Query<(Entity, &MapView), With<Player>>,
+    q_memory: Query<&MapMemory>,
     mut q_render_terminal: Query<&mut Terminal>,
 ) {
     let mut term = match q_render_terminal.single_mut() {
@@ -48,12 +51,111 @@ fn render(
 
     term.clear();
 
-    //let entities = q_entities.iter();
-
-    //render_all_entities(&mut term, entities);
-    render_full_map(map, &mut term);
+    if let Ok((entity, player_view)) = q_player.single() {
+        if let Ok(memory) = q_memory.get(entity) {
+            render_memory(memory, map, &mut term);
+        }
+        render_view(player_view, &mut term, map, q_entities.iter());
+    } else {
+        render_everything(map, &mut term, q_entities.iter());
+    }
 }
 
+// TODO: Should be handled by some kind of prefab/asset setup
+impl From<MapTile> for Tile {
+    fn from(t: MapTile) -> Self {
+        match t {
+            MapTile::Wall => Tile {
+                glyph: '#',
+                fg_color: GREEN,
+                bg_color: BLACK,
+            },
+            MapTile::Floor => Tile {
+                glyph: '.',
+                fg_color: WHITE,
+                bg_color: BLACK,
+            },
+        }
+    }
+}
+
+impl From<&Renderable> for Tile {
+    fn from(r: &Renderable) -> Self {
+        Tile {
+            glyph: r.glyph,
+            fg_color: r.fg_color,
+            bg_color: r.bg_color
+        }
+    }
+}
+
+fn render_view<'a, Actors>(view: &MapView, term: &mut Terminal, map: &Map, actors: Actors) 
+    where Actors: Iterator<Item = (&'a Renderable, &'a Position)>
+{
+    render_map_in_view(view, map, term);
+    render_actors_in_view(view, map, term, actors);
+}
+
+fn render_map_in_view(view: &MapView, map: &Map, term: &mut Terminal) {
+    for (i, seen) in view.0.iter().enumerate() {
+        if *seen {
+            let mut p = IVec2::from(term.to_xy(i));
+            let tile = map.get(p);
+            // Convert to terminal position
+            p.y = term.height() as i32 - 1 - p.y; 
+
+            term.put_tile(p.into(), tile.into());
+        }
+    }
+}
+
+fn render_actors_in_view<'a, Actors>(view: &MapView, map: &Map, term: &mut Terminal, actors: Actors)
+    where Actors: Iterator<Item = (&'a Renderable, &'a Position)>,
+{
+    for (renderable,pos) in actors {
+        let (x,y) = pos.0;
+        let i = map.to_index((x as u32, y as u32));
+
+        if view.0[i] {
+            let y = term.height() as i32 - 1 - y; 
+
+            term.put_tile((x,y), Tile::from(renderable));
+        }
+    }
+}
+
+fn render_memory(memory: &MapMemory, map: &Map, term: &mut Terminal) {
+    for (i, remembered) in memory.0.iter().enumerate() {
+        if *remembered {
+            let mut p = IVec2::from(term.to_xy(i));
+            let tile = map.get(p);
+            // Convert to terminal position
+            p.y = term.height() as i32 - 1 - p.y; 
+            let mut tile: Tile = tile.into();
+
+            tile.fg_color = greyscale(tile.fg_color); 
+            term.put_tile(p.into(), tile.into());
+        }
+    }
+}
+
+fn greyscale(c: TileColor) -> TileColor {
+    let [r,g,b,_]: [f32;4] = c.into();
+    let r = r / 255.0;
+    let g = g / 255.0;
+    let b = b / 255.0;
+    let grey = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    let grey = grey / 8.0;
+    let grey = (grey * 255.0) as u8;
+    TileColor::rgb(grey, grey, grey)
+}
+
+fn render_everything<'a, Actors>(map: &Map, term: &mut Terminal, actors: Actors) 
+where Actors: Iterator<Item = (&'a Renderable, &'a Position)>,
+{
+    render_full_map(map, term);
+    render_all_entities(term, actors);
+}
 fn render_full_map(map: &Map, term: &mut Terminal) {
     for x in 0..map.width() {
         for y in 0..map.height() {
@@ -79,7 +181,7 @@ where
     Entities: Iterator<Item = (&'a Renderable, &'a Position)>,
 {
     for (r, pos) in entities {
-        term.put_char(pos.0, r.glyph);
+        term.put_char_color(pos.0, r.glyph, r.fg_color, r.bg_color);
     }
 }
 

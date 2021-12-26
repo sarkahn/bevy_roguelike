@@ -10,7 +10,7 @@ pub struct MapGenSettings {
     pub iterations: u32,
     pub map_size: (u32, u32),
     pub room_size: Range<u32>,
-    //pub monsters_per_room: Range<u32>,
+    pub monsters_per_room: Range<u32>,
     //pub items_per_room: Range<u32>,
 }
 
@@ -21,7 +21,7 @@ impl Default for MapGenSettings {
             map_size: (60, 25),
             iterations: 15,
             room_size: 5..10,
-            //monsters_per_room: 0..4,
+            monsters_per_room: 0..4,
             //items_per_room: 0..2,
         }
     }

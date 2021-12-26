@@ -3,8 +3,6 @@ name = "bevy_rust_roguelike_tut"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 bevy = "0.5"
 bevy_ascii_terminal = "0.7.4"
@@ -12,3 +10,4 @@ bevy_tiled_camera = "0.2.4"
 rand = "0.8.4"
 ron = "0.7.0"
 serde = "1.0.117"
+adam_fov_rs = "0.1"

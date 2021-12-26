@@ -10,10 +10,10 @@ pub struct MapGenSettings {
 */
 
 MapGenSettings (
-    seed: 4,
+    seed: 5,
     iterations: 15,
     map_size: (80,40),
     room_size: Range( start: 3, end: 15),
-//    monsters_per_room: [0,4],
+    monsters_per_room: Range( start: 0, end: 4 ),
 //    items_per_room: [0,2],
 )

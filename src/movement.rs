@@ -11,6 +11,18 @@ pub struct Position(pub (i32, i32));
 #[derive(Debug, Deserialize, Default)]
 pub struct Movement(pub (i32, i32));
 
+impl From<(i32,i32)> for Position {
+    fn from(p: (i32,i32)) -> Self {
+        Position(p)
+    }
+}
+
+impl From<IVec2> for Position {
+    fn from(v: IVec2) -> Self {
+        Position(v.into())
+    }
+}
+
 /// Plugin for movement related systems.
 pub struct MovementPlugin;
 impl Plugin for MovementPlugin {
@@ -41,10 +53,11 @@ fn movement_system(
     }
 }
 
+
 #[cfg(test)]
 mod test {
     use bevy::prelude::*;
-    use ron::from_str;
+    
 
     use crate::map::{Map, MapTile};
 
