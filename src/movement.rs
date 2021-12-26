@@ -29,8 +29,7 @@ impl From<IVec2> for Position {
 pub struct MovementPlugin;
 impl Plugin for MovementPlugin {
     fn build(&self, app: &mut bevy::prelude::AppBuilder) {
-        app.add_system(movement_system.system()
-        .label(ACTOR_MOVE_SYSTEM_LABEL));
+        app.add_system(movement_system.system().label(ACTOR_MOVE_SYSTEM_LABEL));
     }
 }
 

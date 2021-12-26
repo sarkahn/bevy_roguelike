@@ -3,8 +3,11 @@ use bevy_ascii_terminal::*;
 
 use crate::{
     bundle::MovingEntityBundle,
+    map::Map,
+    map_state::{MapActors, MapObstacles},
+    monster::Monster,
     movement::{Movement, Position},
-    visibility::{MapMemory, MapView, ViewRange}, map_state::{MapObstacles, MapActors}, map::Map, monster::Monster,
+    visibility::{MapMemory, MapView, ViewRange},
 };
 
 pub struct PlayerPlugin;
@@ -42,7 +45,7 @@ impl Default for PlayerBundle {
 
 fn player_input(
     mut q_player: Query<(&Position, &mut Movement), With<Player>>,
-    q_map: Query<&Map>, 
+    q_map: Query<&Map>,
     q_monsters: Query<&Name, With<Monster>>,
     input: Res<Input<KeyCode>>,
     obstacles: Res<MapObstacles>,
@@ -55,11 +58,11 @@ fn player_input(
             if input.cmpeq(IVec2::ZERO).all() {
                 return;
             }
-    
+
             let curr = IVec2::from(pos.0);
-    
+
             let next = curr + input;
-    
+
             let next_i = map.to_index(next.as_u32().into());
 
             if obstacles.0[next_i] {
@@ -70,7 +73,7 @@ fn player_input(
                     }
                 }
             }
-    
+
             movement.0 = input.into();
         }
     }

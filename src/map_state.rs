@@ -1,6 +1,9 @@
-use bevy::{prelude::*};
+use bevy::prelude::*;
 
-use crate::{movement::{Position, ACTOR_MOVE_SYSTEM_LABEL}, map::{Map, MapTile}};
+use crate::{
+    map::{Map, MapTile},
+    movement::{Position, ACTOR_MOVE_SYSTEM_LABEL},
+};
 
 pub const UPDATE_MAP_STATE_SYSTEM_LABEL: &str = "update_map_state_system";
 
@@ -9,9 +12,10 @@ pub struct MapStatePlugin;
 impl Plugin for MapStatePlugin {
     fn build(&self, app: &mut AppBuilder) {
         app.add_system(
-            update_map_state_system.system()
-            .label(UPDATE_MAP_STATE_SYSTEM_LABEL)
-            .after(ACTOR_MOVE_SYSTEM_LABEL)
+            update_map_state_system
+                .system()
+                .label(UPDATE_MAP_STATE_SYSTEM_LABEL)
+                .after(ACTOR_MOVE_SYSTEM_LABEL),
         )
         .init_resource::<MapObstacles>()
         .init_resource::<MapActors>();
@@ -38,13 +42,13 @@ fn update_map_state_system(
 
     if !actors_moved && !map_changed {
         return;
-    } 
+    }
 
     if let Ok(map) = q_changed_map.single() {
         if blockers.0.len() != map.len() {
             blockers.0 = vec![false; map.len()];
         }
-        
+
         if entities.0.len() != map.len() {
             entities.0 = vec![None; map.len()];
         }
@@ -58,13 +62,12 @@ fn update_map_state_system(
             *entry = None;
         }
         for (entity, pos) in q_all_actors.iter() {
-            let (x,y) = pos.0;
+            let (x, y) = pos.0;
             let i = map.to_index((x as u32, y as u32));
             blockers.0[i] = true;
             entities.0[i] = Some(entity);
         }
     }
-    
 }
 
 // fn should_update(

@@ -1,4 +1,7 @@
-use std::{ops::{Index, IndexMut}, slice::Iter};
+use std::{
+    ops::{Index, IndexMut},
+    slice::Iter,
+};
 
 use bevy::{
     math::{IVec2, UVec2},
@@ -65,7 +68,7 @@ impl Map {
         let (x, y) = xy;
         (y * self.size.x + x) as usize
     }
-    
+
     // #[inline]
     // pub fn to_xy(&self, i: usize) -> UVec2 {
     //     let i = i as u32;

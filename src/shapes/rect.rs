@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use bevy::math::{IVec2};
+use bevy::math::IVec2;
 
 /// A rectangle on a grid.
 ///

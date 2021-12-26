@@ -6,13 +6,13 @@ use bevy_tiled_camera::{TiledCameraBundle, TiledCameraPlugin};
 mod bundle;
 mod config;
 mod map;
+mod map_state;
 mod monster;
 mod movement;
 mod player;
 mod render;
 mod shapes;
 mod visibility;
-mod map_state;
 
 use map::*;
 use player::PlayerBundle;
