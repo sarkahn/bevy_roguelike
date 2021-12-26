@@ -11,8 +11,8 @@ pub struct Position(pub (i32, i32));
 #[derive(Debug, Deserialize, Default)]
 pub struct Movement(pub (i32, i32));
 
-impl From<(i32,i32)> for Position {
-    fn from(p: (i32,i32)) -> Self {
+impl From<(i32, i32)> for Position {
+    fn from(p: (i32, i32)) -> Self {
         Position(p)
     }
 }
@@ -53,11 +53,9 @@ fn movement_system(
     }
 }
 
-
 #[cfg(test)]
 mod test {
     use bevy::prelude::*;
-    
 
     use crate::map::{Map, MapTile};
 

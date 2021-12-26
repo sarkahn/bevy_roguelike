@@ -1,10 +1,11 @@
 use bevy::{ecs::schedule::ShouldRun, prelude::*};
 use bevy_ascii_terminal::*;
 
-
 use crate::{
     map::{Map, MapTile},
-    movement::Position, visibility::{MapView, VIEW_SYSTEM_LABEL, MapMemory}, player::Player,
+    movement::Position,
+    player::Player,
+    visibility::{MapMemory, MapView, VIEW_SYSTEM_LABEL},
 };
 
 /// Plugin managing game rendering systems
@@ -14,8 +15,7 @@ impl Plugin for RenderPlugin {
         app.add_system_set(
             SystemSet::new()
                 .with_run_criteria(should_render.system())
-                .with_system(render.system()
-            .after(VIEW_SYSTEM_LABEL)),
+                .with_system(render.system().after(VIEW_SYSTEM_LABEL)),
         )
         .add_plugin(TerminalPlugin);
     }
@@ -84,13 +84,14 @@ impl From<&Renderable> for Tile {
         Tile {
             glyph: r.glyph,
             fg_color: r.fg_color,
-            bg_color: r.bg_color
+            bg_color: r.bg_color,
         }
     }
 }
 
-fn render_view<'a, Actors>(view: &MapView, term: &mut Terminal, map: &Map, actors: Actors) 
-    where Actors: Iterator<Item = (&'a Renderable, &'a Position)>
+fn render_view<'a, Actors>(view: &MapView, term: &mut Terminal, map: &Map, actors: Actors)
+where
+    Actors: Iterator<Item = (&'a Renderable, &'a Position)>,
 {
     render_map_in_view(view, map, term);
     render_actors_in_view(view, map, term, actors);
@@ -102,7 +103,7 @@ fn render_map_in_view(view: &MapView, map: &Map, term: &mut Terminal) {
             let mut p = IVec2::from(term.to_xy(i));
             let tile = map.get(p);
             // Convert to terminal position
-            p.y = term.height() as i32 - 1 - p.y; 
+            p.y = term.height() as i32 - 1 - p.y;
 
             term.put_tile(p.into(), tile.into());
         }
@@ -110,16 +111,17 @@ fn render_map_in_view(view: &MapView, map: &Map, term: &mut Terminal) {
 }
 
 fn render_actors_in_view<'a, Actors>(view: &MapView, map: &Map, term: &mut Terminal, actors: Actors)
-    where Actors: Iterator<Item = (&'a Renderable, &'a Position)>,
+where
+    Actors: Iterator<Item = (&'a Renderable, &'a Position)>,
 {
-    for (renderable,pos) in actors {
-        let (x,y) = pos.0;
+    for (renderable, pos) in actors {
+        let (x, y) = pos.0;
         let i = map.to_index((x as u32, y as u32));
 
         if view.0[i] {
-            let y = term.height() as i32 - 1 - y; 
+            let y = term.height() as i32 - 1 - y;
 
-            term.put_tile((x,y), Tile::from(renderable));
+            term.put_tile((x, y), Tile::from(renderable));
         }
     }
 }
@@ -130,18 +132,18 @@ fn render_memory(memory: &MapMemory, map: &Map, term: &mut Terminal) {
             let mut p = IVec2::from(term.to_xy(i));
             let tile = map.get(p);
             // Convert to terminal position
-            p.y = term.height() as i32 - 1 - p.y; 
+            p.y = term.height() as i32 - 1 - p.y;
 
             let mut tile: Tile = tile.into();
-            tile.fg_color = greyscale(tile.fg_color); 
-            
+            tile.fg_color = greyscale(tile.fg_color);
+
             term.put_tile(p.into(), tile);
         }
     }
 }
 
 fn greyscale(c: TileColor) -> TileColor {
-    let [r,g,b,_]: [f32;4] = c.into();
+    let [r, g, b, _]: [f32; 4] = c.into();
     let r = r / 255.0;
     let g = g / 255.0;
     let b = b / 255.0;
@@ -151,8 +153,9 @@ fn greyscale(c: TileColor) -> TileColor {
     TileColor::rgb(grey, grey, grey)
 }
 
-fn render_everything<'a, Actors>(map: &Map, term: &mut Terminal, actors: Actors) 
-where Actors: Iterator<Item = (&'a Renderable, &'a Position)>,
+fn render_everything<'a, Actors>(map: &Map, term: &mut Terminal, actors: Actors)
+where
+    Actors: Iterator<Item = (&'a Renderable, &'a Position)>,
 {
     render_full_map(map, term);
     render_all_entities(term, actors);

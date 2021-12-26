@@ -1,12 +1,13 @@
 use std::ops::{Index, IndexMut};
 
-use bevy::{math::{UVec2, IVec2}, utils::HashSet, prelude::*};
-use rand::{
-    prelude::{StdRng},
-    Rng,
+use bevy::{
+    math::{IVec2, UVec2},
+    prelude::*,
+    utils::HashSet,
 };
+use rand::{prelude::StdRng, Rng};
 
-use crate::{config::MapGenSettings, shapes::Rect, player::PlayerBundle, monster::MonsterBundle};
+use crate::{config::MapGenSettings, monster::MonsterBundle, player::PlayerBundle, shapes::Rect};
 
 /// A tile on the [Map].
 #[derive(Eq, PartialEq, Clone, Copy)]
@@ -100,17 +101,20 @@ pub struct MapGenerator {
 }
 
 impl MapGenerator {
-    pub fn build(commands: &mut Commands, settings: MapGenSettings, mut rng: StdRng, entities: MapGenEntities) {
+    pub fn build(
+        commands: &mut Commands,
+        settings: MapGenSettings,
+        mut rng: StdRng,
+        entities: MapGenEntities,
+    ) {
         let mut map = Map::with_size(settings.map_size);
         let mut rooms: Vec<Rect> = Vec::with_capacity(50);
-
 
         generate_rooms(&mut map, &settings, &mut rng, &mut rooms);
 
         let map = MapGenerator { map, rooms };
 
-
-        map.place_player(commands, entities.player,);
+        map.place_player(commands, entities.player);
 
         let mut placed: HashSet<IVec2> = HashSet::default();
 
@@ -125,20 +129,22 @@ impl MapGenerator {
         commands.spawn().insert_bundle(player);
     }
 
-    pub fn place_monsters(&self, 
+    pub fn place_monsters(
+        &self,
         commands: &mut Commands,
-        settings: &MapGenSettings, 
-        rng: &mut StdRng, 
-        placed: &mut HashSet<IVec2>
+        settings: &MapGenSettings,
+        rng: &mut StdRng,
+        placed: &mut HashSet<IVec2>,
     ) {
         // The first room is the player's room
         for room in self.rooms.iter().skip(1) {
             let count = rng.gen_range(settings.monsters_per_room.clone());
 
             for _ in 0..=count {
-                for _ in 0..2 { // If the first try fails, try again
+                for _ in 0..2 {
+                    // If the first try fails, try again
                     let p = get_random_ivec(rng, room.min, room.max);
-                    
+
                     if placed.contains(&p) {
                         continue;
                     }
@@ -149,21 +155,20 @@ impl MapGenerator {
                     placed.insert(p);
 
                     commands.spawn_bundle(monster);
-                    
+
                     break;
                 }
             }
         }
     }
-
 }
 
-fn get_random_ivec(rng: &mut StdRng, min: IVec2, max: IVec2) -> IVec2 {  
+fn get_random_ivec(rng: &mut StdRng, min: IVec2, max: IVec2) -> IVec2 {
     let p_x = rng.gen_range(min.x..max.x);
     let p_y = rng.gen_range(min.y..max.y);
 
     IVec2::new(p_x, p_y)
-} 
+}
 
 fn generate_rooms(
     map: &mut Map,

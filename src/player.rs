@@ -1,7 +1,11 @@
 use bevy::prelude::*;
 use bevy_ascii_terminal::*;
 
-use crate::{bundle::MovingEntityBundle, visibility::{MapView, ViewRange, MapMemory}, movement::{Movement}};
+use crate::{
+    bundle::MovingEntityBundle,
+    movement::Movement,
+    visibility::{MapMemory, MapView, ViewRange},
+};
 
 pub struct PlayerPlugin;
 
@@ -26,7 +30,7 @@ pub struct PlayerBundle {
 
 impl Default for PlayerBundle {
     fn default() -> Self {
-        Self { 
+        Self {
             move_bundle: MovingEntityBundle::new(WHITE, '@'),
             player: Default::default(),
             view: Default::default(),
@@ -36,10 +40,7 @@ impl Default for PlayerBundle {
     }
 }
 
-fn player_input(
-    mut q_player: Query<&mut Movement, With<Player>>,
-    input: Res<Input<KeyCode>>,
-) {
+fn player_input(mut q_player: Query<&mut Movement, With<Player>>, input: Res<Input<KeyCode>>) {
     if let Ok(mut movement) = q_player.single_mut() {
         let input = read_movement(&input);
 
@@ -53,7 +54,7 @@ fn player_input(
 
 fn read_movement(input: &Input<KeyCode>) -> IVec2 {
     let mut p = IVec2::ZERO;
-    
+
     if input.just_pressed(KeyCode::Numpad1) {
         p.x = -1;
         p.y = -1;

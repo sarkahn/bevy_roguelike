@@ -1,16 +1,16 @@
 use bevy::prelude::*;
 
-use bevy_ascii_terminal::{TerminalBundle};
+use bevy_ascii_terminal::TerminalBundle;
 use bevy_tiled_camera::{TiledCameraBundle, TiledCameraPlugin};
 
-mod config;
 mod bundle;
+mod config;
 mod map;
+mod monster;
 mod movement;
+mod player;
 mod render;
 mod shapes;
-mod player;
-mod monster;
 mod visibility;
 
 use map::*;

@@ -1,9 +1,9 @@
-use bevy::{
-    prelude::*,
-    math::{IVec2}
-};
+use bevy::{math::IVec2, prelude::*};
 
-use crate::{map::{Map, MapTile}, movement::Position};
+use crate::{
+    map::{Map, MapTile},
+    movement::Position,
+};
 
 use adam_fov_rs::{self, fov};
 
@@ -13,11 +13,8 @@ pub struct VisiblityPlugin;
 
 impl Plugin for VisiblityPlugin {
     fn build(&self, app: &mut AppBuilder) {
-        app.add_system(view_system.system()
-            .label(VIEW_SYSTEM_LABEL)
-        ).add_system(view_memory_system.system()
-            .before(VIEW_SYSTEM_LABEL)
-        );
+        app.add_system(view_system.system().label(VIEW_SYSTEM_LABEL))
+            .add_system(view_memory_system.system().before(VIEW_SYSTEM_LABEL));
     }
 }
 
@@ -65,14 +62,17 @@ impl<'a> adam_fov_rs::VisibilityMap for VisibilityMap<'a> {
 
 #[allow(clippy::type_complexity)]
 fn view_system(
-    mut q_view: Query<(&mut MapView, &Position, &ViewRange), (Changed<Position>, Without<MapMemory>)>,
-    q_map : Query<&Map>,
+    mut q_view: Query<
+        (&mut MapView, &Position, &ViewRange),
+        (Changed<Position>, Without<MapMemory>),
+    >,
+    q_map: Query<&Map>,
 ) {
     if let Ok(map) = q_map.single() {
         for (mut view, pos, range) in q_view.iter_mut() {
             //println!("Updating mapview");
             let view_vec = &mut view.0;
-    
+
             if view_vec.len() != map.len() {
                 *view_vec = vec![false; map.len()];
             }
@@ -80,13 +80,13 @@ fn view_system(
             for b in view_vec.iter_mut() {
                 *b = false;
             }
-    
+
             let mut fov_map = VisibilityMap {
                 map,
                 view: &mut view,
                 memory: None,
             };
-    
+
             fov::compute(pos.0.into(), range.0 as i32, &mut fov_map);
         }
     }
@@ -94,13 +94,13 @@ fn view_system(
 
 fn view_memory_system(
     mut q_view: Query<(&mut MapView, &mut MapMemory, &Position, &ViewRange), Changed<Position>>,
-    q_map : Query<&Map>,
+    q_map: Query<&Map>,
 ) {
     if let Ok(map) = q_map.single() {
         for (mut view, mut memory, pos, range) in q_view.iter_mut() {
             //println!("Updating mapview");
             let view_vec = &mut view.0;
-    
+
             if view_vec.len() != map.len() {
                 *view_vec = vec![false; map.len()];
             }
@@ -115,15 +115,14 @@ fn view_memory_system(
             if mem_vec.len() != map.len() {
                 *mem_vec = vec![false; map.len()];
             }
-    
+
             let mut fov_map = VisibilityMap {
                 map,
                 view: &mut view,
                 memory: Some(&mut memory),
             };
-    
+
             fov::compute(pos.0.into(), range.0 as i32, &mut fov_map);
         }
     }
 }
-
