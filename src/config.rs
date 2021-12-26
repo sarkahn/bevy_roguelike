@@ -44,5 +44,5 @@ pub fn try_get_map_settings() -> Result<MapGenSettings, String> {
         Err(e) => return Err(format!("Error parsing {}: {}", MAP_SETTINGS_FILE_NAME, e)),
     };
 
-    return Ok(settings);
+    Ok(settings)
 }

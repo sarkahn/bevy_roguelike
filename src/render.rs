@@ -131,10 +131,11 @@ fn render_memory(memory: &MapMemory, map: &Map, term: &mut Terminal) {
             let tile = map.get(p);
             // Convert to terminal position
             p.y = term.height() as i32 - 1 - p.y; 
-            let mut tile: Tile = tile.into();
 
+            let mut tile: Tile = tile.into();
             tile.fg_color = greyscale(tile.fg_color); 
-            term.put_tile(p.into(), tile.into());
+            
+            term.put_tile(p.into(), tile);
         }
     }
 }

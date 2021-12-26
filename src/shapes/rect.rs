@@ -31,7 +31,7 @@ impl Rect {
     }
 
     pub fn size(&self) -> IVec2 {
-        (self.max - self.min).into()
+        self.max - self.min
     }
 
     pub fn width(&self) -> i32 {
@@ -50,27 +50,27 @@ impl Rect {
 
     #[allow(dead_code)]
     pub fn position(&self) -> IVec2 {
-        self.min.into()
+        self.min
     }
 
     #[allow(dead_code)]
     pub fn set_position(&mut self, new_pos: (i32, i32)) {
         let new_pos = IVec2::from(new_pos);
-        let size = IVec2::from(self.size());
+        let size = self.size();
         self.min = new_pos;
         self.max = new_pos + size;
     }
 
     pub fn center(&self) -> IVec2 {
-        let size = IVec2::from(self.size());
-        (self.min + size / 2).into()
+        let size = self.size();
+        self.min + size / 2
     }
 
     #[allow(dead_code)]
     /// Move the rect's center without affecting it's position or size.
     pub fn set_center(&mut self, pos: (i32, i32)) {
         let pos = IVec2::from(pos);
-        let size = IVec2::from(self.size());
+        let size = self.size();
         let pos = pos - size / 2;
         self.set_position(pos.into());
     }
@@ -121,12 +121,9 @@ impl Iterator for RectIterator {
     type Item = IVec2;
 
     fn next(&mut self) -> Option<Self::Item> {
-        for i in self.current..self.length {
-            self.current += 1;
-
+        if let Some(i) = (self.current..self.length).next() {
             let xy = IVec2::new(i % self.width, i / self.width);
-
-            return Some((self.min + xy).into());
+            return Some(self.min + xy);
         }
         None
     }

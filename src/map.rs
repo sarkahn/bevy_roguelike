@@ -3,7 +3,7 @@ use std::ops::{Index, IndexMut};
 use bevy::{math::{UVec2, IVec2}, utils::HashSet, prelude::*};
 use rand::{
     prelude::{StdRng},
-    Rng, RngCore,
+    Rng,
 };
 
 use crate::{config::MapGenSettings, shapes::Rect, player::PlayerBundle, monster::MonsterBundle};
@@ -196,7 +196,7 @@ fn generate_rooms(
             //println!("Building new room!");
             build_room(map, &new_room);
 
-            if rooms.len() > 0 {
+            if !rooms.is_empty() {
                 let prev_room = &rooms[rooms.len() - 1];
                 build_tunnels_between_rooms(map, rng, prev_room, &new_room);
             }

@@ -63,6 +63,7 @@ impl<'a> adam_fov_rs::VisibilityMap for VisibilityMap<'a> {
     }
 }
 
+#[allow(clippy::type_complexity)]
 fn view_system(
     mut q_view: Query<(&mut MapView, &Position, &ViewRange), (Changed<Position>, Without<MapMemory>)>,
     q_map : Query<&Map>,
@@ -81,7 +82,7 @@ fn view_system(
             }
     
             let mut fov_map = VisibilityMap {
-                map: &map,
+                map,
                 view: &mut view,
                 memory: None,
             };
@@ -116,7 +117,7 @@ fn view_memory_system(
             }
     
             let mut fov_map = VisibilityMap {
-                map: &map,
+                map,
                 view: &mut view,
                 memory: Some(&mut memory),
             };
