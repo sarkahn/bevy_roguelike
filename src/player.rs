@@ -13,12 +13,12 @@ use crate::{
 pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
-    fn build(&self, app: &mut AppBuilder) {
+    fn build(&self, app: &mut App) {
         app.add_system(player_input.system());
     }
 }
 
-#[derive(Default, Debug)]
+#[derive(Component, Default, Debug)]
 pub struct Player;
 
 #[derive(Debug, Bundle)]
@@ -51,8 +51,8 @@ fn player_input(
     obstacles: Res<MapObstacles>,
     actors: Res<MapActors>,
 ) {
-    if let Ok((pos, mut movement)) = q_player.single_mut() {
-        if let Ok(map) = q_map.single() {
+    if let Ok((pos, mut movement)) = q_player.get_single_mut() {
+        if let Ok(map) = q_map.get_single() {
             let input = read_movement(&input);
 
             if input.cmpeq(IVec2::ZERO).all() {
@@ -63,7 +63,7 @@ fn player_input(
 
             let next = curr + input;
 
-            let next_i = map.to_index(next.as_u32().into());
+            let next_i = map.0.pos_to_index(next.into());
 
             if obstacles.0[next_i] {
                 if let Some(entity) = actors.0[next_i] {

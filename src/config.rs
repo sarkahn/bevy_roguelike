@@ -8,7 +8,7 @@ const MAP_SETTINGS_FILE_NAME: &str = "map_settings.ron";
 pub struct MapGenSettings {
     pub seed: u64,
     pub iterations: u32,
-    pub map_size: (u32, u32),
+    pub map_size: [u32;2],
     pub room_size: Range<u32>,
     pub monsters_per_room: Range<u32>,
     //pub items_per_room: Range<u32>,
@@ -18,7 +18,7 @@ impl Default for MapGenSettings {
     fn default() -> Self {
         Self {
             seed: 1,
-            map_size: (60, 25),
+            map_size: [60, 25],
             iterations: 15,
             room_size: 5..10,
             monsters_per_room: 0..4,

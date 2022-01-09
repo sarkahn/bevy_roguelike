@@ -9,6 +9,7 @@ use bevy::{
     utils::HashSet,
 };
 use rand::{prelude::StdRng, Rng};
+use sark_grids::Grid;
 
 use crate::{config::MapGenSettings, monster::MonsterBundle, player::PlayerBundle, shapes::Rect};
 
@@ -25,85 +26,89 @@ impl Default for MapTile {
     }
 }
 
-/// Map of [MapTile].
-pub struct Map {
-    tiles: Vec<MapTile>,
-    size: UVec2,
-}
+#[derive(Component)]
+pub struct Map(pub Grid<MapTile>);
 
-impl Map {
-    pub fn with_size(size: (u32, u32)) -> Self {
-        let (width, height) = size;
-        let len = (width * height) as usize;
-        Map {
-            tiles: vec![MapTile::default(); len],
-            size: UVec2::from(size),
-        }
-    }
+// /// Map of [MapTile].
+// #[derive(Component)]
+// pub struct Map {
+//     tiles: Vec<MapTile>,
+//     size: UVec2,
+// }
 
-    pub fn width(&self) -> u32 {
-        self.size.x
-    }
+// impl Map {
+//     pub fn with_size(size: [u32;2]) -> Self {
+//         let [width, height] = size;
+//         let len = (width * height) as usize;
+//         Map {
+//             tiles: vec![MapTile::default(); len],
+//             size: UVec2::from(size),
+//         }
+//     }
 
-    pub fn height(&self) -> u32 {
-        self.size.y
-    }
+//     pub fn width(&self) -> u32 {
+//         self.size.x
+//     }
 
-    pub fn len(&self) -> usize {
-        (self.size.x * self.size.y) as usize
-    }
+//     pub fn height(&self) -> u32 {
+//         self.size.y
+//     }
 
-    pub fn size(&self) -> (u32, u32) {
-        self.size.into()
-    }
+//     pub fn len(&self) -> usize {
+//         (self.size.x * self.size.y) as usize
+//     }
 
-    // #[inline]
-    // pub fn to_xy(&self, index: usize) -> (u32,u32) {
-    //     let index = index as u32;
-    //     (index % self.size.x, index / self.size.y)
-    // }
+//     pub fn size(&self) -> UVec2 {
+//         self.size.into()
+//     }
 
-    #[inline]
-    pub fn to_index(&self, xy: (u32, u32)) -> usize {
-        let (x, y) = xy;
-        (y * self.size.x + x) as usize
-    }
+//     // #[inline]
+//     // pub fn to_xy(&self, index: usize) -> (u32,u32) {
+//     //     let index = index as u32;
+//     //     (index % self.size.x, index / self.size.y)
+//     // }
 
-    // #[inline]
-    // pub fn to_xy(&self, i: usize) -> UVec2 {
-    //     let i = i as u32;
-    //     let x = i % self.size.x;
-    //     let y = i / self.size.x;
-    //     UVec2::new(x,y)
-    // }
+//     #[inline]
+//     pub fn to_index(&self, xy: [i32;2]) -> usize {
+//         let [x, y] = xy;
+//         (y * self.width() as i32 + x) as usize
+//     }
 
-    pub fn is_in_bounds(&self, p: IVec2) -> bool {
-        p.cmpge(IVec2::ZERO).all() && p.cmplt(self.size.as_i32()).all()
-    }
+//     #[inline]
+//     pub fn to_xy(&self, i: usize) -> IVec2 {
+//         let i = i as u32;
+//         let x = i % self.size.x;
+//         let y = i / self.size.x;
+//         IVec2::new(x as i32,y as i32) 
+//     }
 
-    pub fn get(&self, p: IVec2) -> MapTile {
-        self.tiles[self.to_index(p.as_u32().into())]
-    }
+//     pub fn is_in_bounds(&self, p: IVec2) -> bool {
+//         p.cmpge(IVec2::ZERO).all() && p.cmplt(self.size.as_ivec2()).all()
+//     }
 
-    pub fn iter(&self) -> Iter<MapTile> {
-        self.tiles.iter()
-    }
-}
+//     pub fn get(&self, p: IVec2) -> MapTile {
+//         self.tiles[self.to_index(p.into())]
+//     }
 
-impl Index<(u32, u32)> for Map {
-    type Output = MapTile;
+//     pub fn iter(&self) -> Iter<MapTile> {
+//         self.tiles.iter()
+//     }
+// }
 
-    fn index(&self, pos: (u32, u32)) -> &Self::Output {
-        &self.tiles[self.to_index(pos)]
-    }
-}
+// impl Index<[i32;2]> for Map {
+//     type Output = MapTile;
 
-impl IndexMut<(u32, u32)> for Map {
-    fn index_mut(&mut self, pos: (u32, u32)) -> &mut Self::Output {
-        let i = self.to_index(pos);
-        &mut self.tiles[i]
-    }
-}
+//     fn index(&self, pos: [i32;2]) -> &Self::Output {
+//         &self.tiles[self.to_index(pos)]
+//     }
+// }
+
+// impl IndexMut<[i32;2]> for Map {
+//     fn index_mut(&mut self, pos: [i32;2]) -> &mut Self::Output {
+//         let i = self.to_index(pos);
+//         &mut self.tiles[i]
+//     }
+// }
 
 pub struct MapGenEntities {
     pub player: PlayerBundle,
@@ -122,7 +127,7 @@ impl MapGenerator {
         mut rng: StdRng,
         entities: MapGenEntities,
     ) {
-        let mut map = Map::with_size(settings.map_size);
+        let mut map = Map(Grid::default(settings.map_size));
         let mut rooms: Vec<Rect> = Vec::with_capacity(50);
 
         generate_rooms(&mut map, &settings, &mut rng, &mut rooms);
@@ -195,8 +200,8 @@ fn generate_rooms(
         let w = rng.gen_range(settings.room_size.clone());
         let h = rng.gen_range(settings.room_size.clone());
 
-        let x = rng.gen_range(1..map.size.x - w - 1);
-        let y = rng.gen_range(1..map.size.y - h - 1);
+        let x = rng.gen_range(1..map.0.right_index() as u32 - w);
+        let y = rng.gen_range(1..map.0.top_index() as u32 - h);
 
         let new_room = Rect::from_position_size((x as i32, y as i32), (w as i32, h as i32));
 
@@ -228,7 +233,7 @@ fn generate_rooms(
 
 fn build_room(map: &mut Map, room: &Rect) {
     for pos in room.iter() {
-        map[pos.as_u32().into()] = MapTile::Floor;
+        map.0[pos] = MapTile::Floor;
     }
 }
 
@@ -250,7 +255,7 @@ fn build_horizontal_tunnel(map: &mut Map, x1: i32, x2: i32, y: i32) {
     let max = x1.max(x2);
 
     for x in min..=max {
-        map[(x as u32, y as u32)] = MapTile::Floor;
+        map.0[ [x as u32, y as u32] ] = MapTile::Floor;
     }
 }
 
@@ -259,6 +264,6 @@ fn build_vertical_tunnel(map: &mut Map, y1: i32, y2: i32, x: i32) {
     let max = y1.max(y2);
 
     for y in min..=max {
-        map[(x as u32, y as u32)] = MapTile::Floor;
+        map.0[ [x as u32, y as u32] ] = MapTile::Floor;
     }
 }

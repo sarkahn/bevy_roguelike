@@ -4,10 +4,11 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-bevy = "0.5"
-bevy_ascii_terminal = "0.7.4"
-bevy_tiled_camera = "0.2.4"
+bevy = { version = "0.6", default-features = false, features = ["png", "bevy_winit", "render"] }
+bevy_ascii_terminal = { path = "../bevy_ascii_terminal", version = "0.8.0" }
+bevy_tiled_camera = { path = "../bevy_tiled_camera", version = "0.3.0" }
 rand = "0.8.4"
 ron = "0.7.0"
 serde = "1.0.117"
-adam_fov_rs = "0.1"
+adam_fov_rs = { path = "../adam_fov_rs", version = "0.1.2" }
+sark_grids = { path = "../sark_grids", version = "0.1.4" }

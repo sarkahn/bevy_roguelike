@@ -3,7 +3,7 @@ use bevy_ascii_terminal::RED;
 
 use crate::{bundle::MovingEntityBundle, map_state::PathBlocker};
 
-#[derive(Default)]
+#[derive(Component, Default)]
 pub struct Monster;
 
 #[derive(Bundle)]

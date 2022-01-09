@@ -10,10 +10,9 @@ pub const UPDATE_MAP_STATE_SYSTEM_LABEL: &str = "update_map_state_system";
 pub struct MapStatePlugin;
 
 impl Plugin for MapStatePlugin {
-    fn build(&self, app: &mut AppBuilder) {
+    fn build(&self, app: &mut App) {
         app.add_system(
             update_map_state_system
-                .system()
                 .label(UPDATE_MAP_STATE_SYSTEM_LABEL)
                 .after(ACTOR_MOVE_SYSTEM_LABEL),
         )
@@ -22,12 +21,12 @@ impl Plugin for MapStatePlugin {
     }
 }
 
-#[derive(Default)]
+#[derive(Component, Default)]
 pub struct PathBlocker;
 
-#[derive(Default)]
+#[derive(Component, Default)]
 pub struct MapObstacles(pub Vec<bool>);
-#[derive(Default)]
+#[derive(Component, Default)]
 pub struct MapActors(pub Vec<Option<Entity>>);
 
 fn update_map_state_system(
@@ -44,26 +43,25 @@ fn update_map_state_system(
         return;
     }
 
-    if let Ok(map) = q_changed_map.single() {
-        if blockers.0.len() != map.len() {
-            blockers.0 = vec![false; map.len()];
+    if let Ok(map) = q_changed_map.get_single() {
+        if blockers.0.len() != map.0.len() {
+            blockers.0 = vec![false; map.0.len()];
         }
 
-        if entities.0.len() != map.len() {
-            entities.0 = vec![None; map.len()];
+        if entities.0.len() != map.0.len() {
+            entities.0 = vec![None; map.0.len()];
         }
 
-        for (i, tile) in map.iter().enumerate() {
+        for (i, tile) in map.0.iter().enumerate() {
             blockers.0[i] = *tile == MapTile::Wall;
         }
 
         // Clear entity state
-        for entry in entities.0.iter_mut() {
+        for entry in entities.0.iter_mut() { 
             *entry = None;
         }
         for (entity, pos) in q_all_actors.iter() {
-            let (x, y) = pos.0;
-            let i = map.to_index((x as u32, y as u32));
+            let i = map.0.pos_to_index(pos.0.into());
             blockers.0[i] = true;
             entities.0[i] = Some(entity);
         }

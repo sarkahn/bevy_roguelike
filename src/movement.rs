@@ -6,15 +6,15 @@ use serde::Deserialize;
 pub const ACTOR_MOVE_SYSTEM_LABEL: &str = "actor_movement_system";
 
 /// Component for tracking entity positions on the map.
-#[derive(Debug, Deserialize, Default)]
-pub struct Position(pub (i32, i32));
+#[derive(Component, Debug, Deserialize, Default)]
+pub struct Position(pub [i32;2]);
 
 /// Component for tracking entity movement.
-#[derive(Debug, Deserialize, Default)]
-pub struct Movement(pub (i32, i32));
+#[derive(Component, Debug, Deserialize, Default)]
+pub struct Movement(pub [i32;2]);
 
-impl From<(i32, i32)> for Position {
-    fn from(p: (i32, i32)) -> Self {
+impl From<[i32;2]> for Position {
+    fn from(p: [i32;2]) -> Self {
         Position(p)
     }
 }
@@ -28,8 +28,8 @@ impl From<IVec2> for Position {
 /// Plugin for movement related systems.
 pub struct MovementPlugin;
 impl Plugin for MovementPlugin {
-    fn build(&self, app: &mut bevy::prelude::AppBuilder) {
-        app.add_system(movement_system.system().label(ACTOR_MOVE_SYSTEM_LABEL));
+    fn build(&self, app: &mut App) {
+        app.add_system(movement_system.label(ACTOR_MOVE_SYSTEM_LABEL));
     }
 }
 
@@ -37,7 +37,7 @@ fn movement_system(
     q_map: Query<&Map>,
     mut q_move: Query<(&mut Position, &mut Movement), Changed<Movement>>,
 ) {
-    let map = match q_map.single() {
+    let map = match q_map.get_single() {
         Ok(map) => map,
         Err(_) => return,
     };
@@ -47,17 +47,18 @@ fn movement_system(
         let m_vec = IVec2::from(movement.0);
         let next = p_vec + m_vec;
 
-        if map[next.as_u32().into()] == MapTile::Floor {
+        if map.0[next] == MapTile::Floor {
             pos.0 = next.into();
         }
 
-        movement.0 = (0, 0);
+        movement.0 = [0, 0];
     }
 }
 
 #[cfg(test)]
 mod test {
     use bevy::prelude::*;
+    use sark_grids::Grid;
 
     use crate::map::{Map, MapTile};
 
@@ -67,10 +68,10 @@ mod test {
     fn can_move_into_floors() {
         let mut world = World::default();
 
-        let mut map = Map::with_size((10, 10));
-        map[(0, 0)] = MapTile::Floor;
-        map[(1, 0)] = MapTile::Floor;
-        map[(2, 0)] = MapTile::Wall;
+        let mut map = Map(Grid::default([10, 10]));
+        map.0[[0, 0]] = MapTile::Floor;
+        map.0[[1, 0]] = MapTile::Floor;
+        map.0[[2, 0]] = MapTile::Wall;
 
         world.spawn().insert(map);
 
@@ -79,8 +80,8 @@ mod test {
 
         let mover = world
             .spawn()
-            .insert(Position((0, 0)))
-            .insert(Movement((1, 0)))
+            .insert(Position([0, 0]))
+            .insert(Movement([1, 0]))
             .id();
 
         update_stage.run(&mut world);
@@ -88,17 +89,17 @@ mod test {
         let pos = world.get::<Position>(mover).unwrap();
         let movement = world.get::<Movement>(mover).unwrap();
 
-        assert_eq!(pos.0, (1, 0));
-        assert_eq!(movement.0, (0, 0));
+        assert_eq!(pos.0, [1, 0]);
+        assert_eq!(movement.0, [0, 0]);
     }
 
     #[test]
     fn cant_move_into_walls() {
         let mut world = World::default();
 
-        let mut map = Map::with_size((10, 10));
-        map[(0, 0)] = MapTile::Floor;
-        map[(1, 0)] = MapTile::Wall;
+        let mut map = Map(Grid::default([10, 10]));
+        map.0[[0, 0]] = MapTile::Floor;
+        map.0[[1, 0]] = MapTile::Wall;
 
         world.spawn().insert(map);
 
@@ -107,13 +108,13 @@ mod test {
 
         let mover = world
             .spawn()
-            .insert(Position((0, 0)))
-            .insert(Movement((1, 0)))
+            .insert(Position([0, 0]))
+            .insert(Movement([1, 0]))
             .id();
 
         {
             let mut movement = world.get_mut::<Movement>(mover).unwrap();
-            movement.0 = (1, 0);
+            movement.0 = [1, 0];
         }
 
         update_stage.run(&mut world);
@@ -121,7 +122,7 @@ mod test {
         let pos = world.get::<Position>(mover).unwrap();
         let movement = world.get::<Movement>(mover).unwrap();
 
-        assert_eq!(movement.0, (0, 0));
-        assert_eq!(pos.0, (0, 0));
+        assert_eq!(movement.0, [0, 0]);
+        assert_eq!(pos.0, [0, 0]);
     }
 }

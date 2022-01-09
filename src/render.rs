@@ -11,7 +11,7 @@ use crate::{
 /// Plugin managing game rendering systems
 pub struct RenderPlugin;
 impl Plugin for RenderPlugin {
-    fn build(&self, app: &mut bevy::prelude::AppBuilder) {
+    fn build(&self, app: &mut App) {
         app.add_system_set(
             SystemSet::new()
                 .with_run_criteria(should_render.system())
@@ -21,7 +21,7 @@ impl Plugin for RenderPlugin {
     }
 }
 
-#[derive(Debug)]
+#[derive(Component, Debug)]
 pub struct Renderable {
     pub fg_color: TileColor,
     pub bg_color: TileColor,
@@ -35,23 +35,23 @@ fn render(
     q_memory: Query<&MapMemory>,
     mut q_render_terminal: Query<&mut Terminal>,
 ) {
-    let mut term = match q_render_terminal.single_mut() {
+    let mut term = match q_render_terminal.get_single_mut() {
         Ok(term) => term,
         Err(_) => return,
     };
 
-    let map = match q_map.single() {
+    let map = match q_map.get_single() {
         Ok(term) => term,
         Err(_) => return,
     };
 
-    if term.size() != map.size() {
-        term.resize(map.size());
+    if term.size() != map.0.size() {
+        term.resize(map.0.size().into());
     }
 
     term.clear();
 
-    if let Ok((entity, player_view)) = q_player.single() {
+    if let Ok((entity, player_view)) = q_player.get_single() {
         if let Ok(memory) = q_memory.get(entity) {
             render_memory(memory, map, &mut term);
         }
@@ -100,11 +100,10 @@ where
 fn render_map_in_view(view: &MapView, map: &Map, term: &mut Terminal) {
     for (i, seen) in view.0.iter().enumerate() {
         if *seen {
-            let mut p = IVec2::from(term.to_xy(i));
-            let tile = map.get(p);
+            let p = map.0.index_to_pos(i);
+            let tile = map.0[p];
+            
             // Convert to terminal position
-            p.y = term.height() as i32 - 1 - p.y;
-
             term.put_tile(p.into(), tile.into());
         }
     }
@@ -115,13 +114,11 @@ where
     Actors: Iterator<Item = (&'a Renderable, &'a Position)>,
 {
     for (renderable, pos) in actors {
-        let (x, y) = pos.0;
-        let i = map.to_index((x as u32, y as u32));
+        let [x, y] = pos.0;
+        let i = map.0.pos_to_index( [x, y] );
 
         if view.0[i] {
-            let y = term.height() as i32 - 1 - y;
-
-            term.put_tile((x, y), Tile::from(renderable));
+            term.put_tile([x, y], Tile::from(renderable));
         }
     }
 }
@@ -129,10 +126,8 @@ where
 fn render_memory(memory: &MapMemory, map: &Map, term: &mut Terminal) {
     for (i, remembered) in memory.0.iter().enumerate() {
         if *remembered {
-            let mut p = IVec2::from(term.to_xy(i));
-            let tile = map.get(p);
-            // Convert to terminal position
-            p.y = term.height() as i32 - 1 - p.y;
+            let p = IVec2::from(term.to_xy(i));
+            let tile = map.0[p];
 
             let mut tile: Tile = tile.into();
             tile.fg_color = greyscale(tile.fg_color);
@@ -144,9 +139,6 @@ fn render_memory(memory: &MapMemory, map: &Map, term: &mut Terminal) {
 
 fn greyscale(c: TileColor) -> TileColor {
     let [r, g, b, _]: [f32; 4] = c.into();
-    let r = r / 255.0;
-    let g = g / 255.0;
-    let b = b / 255.0;
     let grey = 0.2126 * r + 0.7152 * g + 0.0722 * b;
     let grey = grey / 8.0;
     let grey = (grey * 255.0) as u8;
@@ -161,9 +153,9 @@ where
     render_all_entities(term, actors);
 }
 fn render_full_map(map: &Map, term: &mut Terminal) {
-    for x in 0..map.width() {
-        for y in 0..map.height() {
-            let tile: Tile = match map[(x, y)] {
+    for x in 0..map.0.width() as i32 {
+        for y in 0..map.0.height() as i32 {
+            let tile: Tile = match map.0[ [x as u32, y as u32] ] {
                 MapTile::Wall => Tile {
                     glyph: '#',
                     fg_color: GREEN,
@@ -175,7 +167,7 @@ fn render_full_map(map: &Map, term: &mut Terminal) {
                     bg_color: BLACK,
                 },
             };
-            term.put_tile((x as i32, y as i32), tile);
+            term.put_tile([x as i32, y as i32], tile);
         }
     }
 }
