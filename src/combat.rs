@@ -101,6 +101,18 @@ fn resolve_target_events(
                         } 
                     }
                 }
+                
+                // TEMP!
+                if let Ok(attack) = q_attack.get(tar) {
+                    if let Ok((mut hp, _, def)) = q_defend.get_mut(actor) {
+                        let amount = attack.0 - def.0;
+
+                        if amount <= 0 {
+                            continue;
+                        }
+                        hp.0 -= amount;
+                    }
+                }
             },
         };
     }

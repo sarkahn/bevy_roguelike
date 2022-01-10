@@ -53,7 +53,7 @@ impl Default for PlayerBundle {
             combatant_bundle: CombatantBundle {
                 hp: HitPoints(50),
                 max_hp: MaxHitPoints(50),
-                defense: Defense(4),
+                defense: Defense(2),
                 attack: AttackPower(5),
             },
             player: Default::default(),
@@ -100,7 +100,7 @@ fn player_input(
                     //     attacker_name: "Player".to_string(),
                     //     defender_name: format!("the {}", name.to_string()),
                     // });
-                    println!("Player attacked a monster, ending their turn.");
+                    //println!("Player attacked a monster, ending their turn.");
                     energy.0 = 0;
                 }
             }
@@ -121,31 +121,31 @@ fn player_input(
 fn read_movement(input: &Input<KeyCode>) -> IVec2 {
     let mut p = IVec2::ZERO;
 
-    if input.just_pressed(KeyCode::Numpad1) {
+    if input.just_pressed(KeyCode::Numpad1) || input.just_pressed(KeyCode::Z) {
         p.x = -1;
         p.y = -1;
     }
-    if input.just_pressed(KeyCode::Numpad2) {
+    if input.just_pressed(KeyCode::Numpad2) || input.just_pressed(KeyCode::X) || input.just_pressed(KeyCode::S) || input.just_pressed(KeyCode::Down) {
         p.y = -1;
     }
-    if input.just_pressed(KeyCode::Numpad3) {
+    if input.just_pressed(KeyCode::Numpad3) || input.just_pressed(KeyCode::C) {
         p.x = 1;
         p.y = -1;
     }
-    if input.just_pressed(KeyCode::Numpad4) {
+    if input.just_pressed(KeyCode::Numpad4) || input.just_pressed(KeyCode::A) || input.just_pressed(KeyCode::Left) {
         p.x = -1;
     }
-    if input.just_pressed(KeyCode::Numpad6) {
+    if input.just_pressed(KeyCode::Numpad6) || input.just_pressed(KeyCode::D) || input.just_pressed(KeyCode::Right) {
         p.x = 1;
     }
-    if input.just_pressed(KeyCode::Numpad7) {
+    if input.just_pressed(KeyCode::Numpad7) || input.just_pressed(KeyCode::Q) {
         p.x = -1;
         p.y = 1;
     }
-    if input.just_pressed(KeyCode::Numpad8) {
+    if input.just_pressed(KeyCode::Numpad8) || input.just_pressed(KeyCode::W) || input.just_pressed(KeyCode::Up) {
         p.y = 1;
     }
-    if input.just_pressed(KeyCode::Numpad9) {
+    if input.just_pressed(KeyCode::Numpad9) || input.just_pressed(KeyCode::E) {
         p.x = 1;
         p.y = 1;
     }
