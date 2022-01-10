@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, math::XY};
 
 use bevy_ascii_terminal::TerminalBundle;
 use bevy_tiled_camera::{TiledCameraBundle, TiledCameraPlugin};
@@ -13,43 +13,55 @@ mod player;
 mod render;
 mod shapes;
 mod visibility;
+mod ui;
+mod events;
+mod web_resize;
 
 use map::*;
 use player::PlayerBundle;
 use rand::{prelude::StdRng, SeedableRng};
 
+#[derive(Component)]
+pub struct GameTerminal;
+
+
+pub const VIEWPORT_SIZE: [u32;2] = [80,40];
+
+pub const UI_SIZE: [u32;2] = [VIEWPORT_SIZE[0],8];
+// TODO: Map size should be separate
+pub const GAME_SIZE: [u32;2] = [VIEWPORT_SIZE[0], VIEWPORT_SIZE[1] - UI_SIZE[1]];
+
+
 fn setup(mut commands: Commands) {
-    let settings = match config::try_get_map_settings() {
-        Ok(settings) => settings,
-        Err(e) => panic!("{}", e),
-    };
-
-    let size = settings.map_size;
-
-    let rng = StdRng::seed_from_u64(settings.seed);
-
-    let entities = MapGenEntities {
-        player: PlayerBundle::default(),
-    };
-
-    MapGenerator::build(&mut commands, settings, rng, entities);
-
     //commands.spawn().insert(gen.map);
 
-    commands.spawn_bundle(TerminalBundle::new().with_size(size));
+    let term_y = VIEWPORT_SIZE[1] as f32 / 2.0 - GAME_SIZE[1] as f32 / 2.0; 
+    let term_bundle = TerminalBundle {
+        transform: Transform::from_xyz(0.0, term_y, 0.0),
+        ..TerminalBundle::new().with_size([GAME_SIZE[0], GAME_SIZE[1] + 2])
+    };
+    //term_bundle.transform = Transform::from_xyz(0.0, 0.0, UI_SIZE[1] as f32 * 2.0);
+    commands.spawn_bundle(term_bundle).insert(GameTerminal);
 
-    commands.spawn_bundle(TiledCameraBundle::new().with_tile_count(size));
+    let totalx = GAME_SIZE[0];
+    let totaly = GAME_SIZE[1] + UI_SIZE[1];
+    commands.spawn_bundle(TiledCameraBundle::new().with_tile_count([totalx, totaly]));
 }
 
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_plugin(TiledCameraPlugin)
+        .add_plugin(player::PlayerPlugin)
+        .add_plugin(map::MapGenPlugin)
         .add_plugin(render::RenderPlugin)
+        .add_plugin(events::EventsPlugin)
         .add_plugin(movement::MovementPlugin)
         .add_plugin(visibility::VisiblityPlugin)
-        .add_plugin(player::PlayerPlugin)
         .add_plugin(map_state::MapStatePlugin)
-        .add_startup_system(setup.system())
+        .add_plugin(web_resize::FullViewportPlugin)
+        .add_plugin(ui::UiPlugin)
+        .add_startup_system(setup)
+        .insert_resource(ClearColor(Color::BLACK))
         .run();
 }

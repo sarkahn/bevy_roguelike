@@ -17,10 +17,10 @@ pub struct MapGenSettings {
 impl Default for MapGenSettings {
     fn default() -> Self {
         Self {
-            seed: 1,
-            map_size: [60, 25],
+            seed: 5,
             iterations: 15,
-            room_size: 5..10,
+            map_size: [80, 40],
+            room_size: 3..15,
             monsters_per_room: 0..4,
             //items_per_room: 0..2,
         }

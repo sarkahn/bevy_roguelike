@@ -7,15 +7,27 @@ use crate::{
     map_state::{MapActors, MapObstacles},
     monster::Monster,
     movement::{Movement, Position},
-    visibility::{MapMemory, MapView, ViewRange},
+    visibility::{MapMemory, MapView, ViewRange}, events::AttackEvent,
 };
+
+pub const PLAYER_SETUP_LABEL: &str = "PLAYER_SETUP_SYSTEM";
 
 pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(player_input.system());
+        app
+        .add_startup_system_to_stage(StartupStage::PreStartup, spawn_player)
+        //.add_startup_system(spawn_player.label(PLAYER_SETUP_LABEL))
+        .add_system(player_input);
+        
     }
+}
+
+fn spawn_player(
+    mut commands: Commands
+) {
+    commands.spawn_bundle(PlayerBundle::default());
 }
 
 #[derive(Component, Default, Debug)]
@@ -50,6 +62,7 @@ fn player_input(
     input: Res<Input<KeyCode>>,
     obstacles: Res<MapObstacles>,
     actors: Res<MapActors>,
+    mut event_attack: EventWriter<AttackEvent>,
 ) {
     if let Ok((pos, mut movement)) = q_player.get_single_mut() {
         if let Ok(map) = q_map.get_single() {
@@ -68,7 +81,11 @@ fn player_input(
             if obstacles.0[next_i] {
                 if let Some(entity) = actors.0[next_i] {
                     if let Ok(name) = q_monsters.get(entity) {
-                        println!("You bumped into {}", name.as_str());
+                        //println!("You bumped into {}", name.as_str());
+                        event_attack.send(AttackEvent {
+                            attacker_name: "Player".to_string(),
+                            defender_name: format!("the {}", name.to_string()),
+                        });
                         return;
                     }
                 }

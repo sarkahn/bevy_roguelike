@@ -5,8 +5,13 @@ use crate::{
     map::{Map, MapTile},
     movement::Position,
     player::Player,
-    visibility::{MapMemory, MapView, VIEW_SYSTEM_LABEL},
+    visibility::{MapMemory, MapView, VIEW_SYSTEM_LABEL}, GameTerminal,
 };
+
+pub const WALL_COLOR: TileColor = TileColor { r:221, g:226, b:225, a: u8::MAX};
+pub const FLOOR_COLOR: TileColor = TileColor { r: 155, g: 118, b: 83, a: u8::MAX };
+
+pub const RENDER_SYSTEM_LABEL: &str = "GAME_RENDER_SYSTEM";
 
 /// Plugin managing game rendering systems
 pub struct RenderPlugin;
@@ -15,7 +20,11 @@ impl Plugin for RenderPlugin {
         app.add_system_set(
             SystemSet::new()
                 .with_run_criteria(should_render.system())
-                .with_system(render.system().after(VIEW_SYSTEM_LABEL)),
+                .with_system(
+                    render
+                    .after(VIEW_SYSTEM_LABEL)
+                    .label(RENDER_SYSTEM_LABEL)
+                ),
         )
         .add_plugin(TerminalPlugin);
     }
@@ -33,7 +42,7 @@ fn render(
     q_entities: Query<(&Renderable, &Position)>,
     q_player: Query<(Entity, &MapView), With<Player>>,
     q_memory: Query<&MapMemory>,
-    mut q_render_terminal: Query<&mut Terminal>,
+    mut q_render_terminal: Query<&mut Terminal, With<GameTerminal>>,
 ) {
     let mut term = match q_render_terminal.get_single_mut() {
         Ok(term) => term,
@@ -59,6 +68,8 @@ fn render(
     } else {
         render_everything(map, &mut term, q_entities.iter());
     }
+
+    term.draw_border_single();
 }
 
 // TODO: Should be handled by some kind of prefab/asset setup
@@ -67,12 +78,12 @@ impl From<MapTile> for Tile {
         match t {
             MapTile::Wall => Tile {
                 glyph: '#',
-                fg_color: GREEN,
+                fg_color: WALL_COLOR,
                 bg_color: BLACK,
             },
             MapTile::Floor => Tile {
                 glyph: '.',
-                fg_color: WHITE,
+                fg_color: FLOOR_COLOR,
                 bg_color: BLACK,
             },
         }
@@ -158,12 +169,12 @@ fn render_full_map(map: &Map, term: &mut Terminal) {
             let tile: Tile = match map.0[ [x as u32, y as u32] ] {
                 MapTile::Wall => Tile {
                     glyph: '#',
-                    fg_color: GREEN,
+                    fg_color: WALL_COLOR,
                     bg_color: BLACK,
                 },
                 MapTile::Floor => Tile {
                     glyph: '.',
-                    fg_color: WHITE,
+                    fg_color: FLOOR_COLOR,
                     bg_color: BLACK,
                 },
             };

@@ -1,17 +1,50 @@
-use std::{
-    ops::{Index, IndexMut},
-    slice::Iter,
-};
-
 use bevy::{
-    math::{IVec2, UVec2},
+    math::{IVec2},
     prelude::*,
     utils::HashSet,
 };
-use rand::{prelude::StdRng, Rng};
+use rand::{prelude::StdRng, Rng, SeedableRng};
 use sark_grids::Grid;
 
-use crate::{config::MapGenSettings, monster::MonsterBundle, player::PlayerBundle, shapes::Rect};
+use crate::{config::{MapGenSettings, self}, monster::MonsterBundle, player::{PlayerBundle, PLAYER_SETUP_LABEL, Player}, shapes::Rect, GAME_SIZE, movement::Position};
+
+pub struct MapGenPlugin;
+
+pub const MAP_GEN_SETUP_LABEL: &str = "MAP_GEN_SETUP";
+
+impl Plugin for MapGenPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_startup_system(setup
+            //.after(PLAYER_SETUP_LABEL)
+            .label(MAP_GEN_SETUP_LABEL)
+        );
+    }
+}
+
+fn setup(
+    mut commands: Commands,
+    q_player: Query<(Entity,&Player)>,
+) {
+  // Gen map
+    // let mut settings = match config::try_get_map_settings() {
+    //     Ok(settings) => settings,
+    //     Err(e) => panic!("{}", e),
+    // };
+
+    let mut settings = MapGenSettings::default();
+    settings.map_size = GAME_SIZE;
+
+    //settings.map_size;
+
+    let rng = StdRng::seed_from_u64(settings.seed);
+
+    let player = q_player.get_single().map_or_else(|_|None,|(e,_)|Some(e));
+    let entities = MapGenEntities {
+        player,
+    };
+
+    MapGenerator::build(&mut commands, settings, rng, entities);
+}
 
 /// A tile on the [Map].
 #[derive(Eq, PartialEq, Clone, Copy)]
@@ -29,89 +62,8 @@ impl Default for MapTile {
 #[derive(Component)]
 pub struct Map(pub Grid<MapTile>);
 
-// /// Map of [MapTile].
-// #[derive(Component)]
-// pub struct Map {
-//     tiles: Vec<MapTile>,
-//     size: UVec2,
-// }
-
-// impl Map {
-//     pub fn with_size(size: [u32;2]) -> Self {
-//         let [width, height] = size;
-//         let len = (width * height) as usize;
-//         Map {
-//             tiles: vec![MapTile::default(); len],
-//             size: UVec2::from(size),
-//         }
-//     }
-
-//     pub fn width(&self) -> u32 {
-//         self.size.x
-//     }
-
-//     pub fn height(&self) -> u32 {
-//         self.size.y
-//     }
-
-//     pub fn len(&self) -> usize {
-//         (self.size.x * self.size.y) as usize
-//     }
-
-//     pub fn size(&self) -> UVec2 {
-//         self.size.into()
-//     }
-
-//     // #[inline]
-//     // pub fn to_xy(&self, index: usize) -> (u32,u32) {
-//     //     let index = index as u32;
-//     //     (index % self.size.x, index / self.size.y)
-//     // }
-
-//     #[inline]
-//     pub fn to_index(&self, xy: [i32;2]) -> usize {
-//         let [x, y] = xy;
-//         (y * self.width() as i32 + x) as usize
-//     }
-
-//     #[inline]
-//     pub fn to_xy(&self, i: usize) -> IVec2 {
-//         let i = i as u32;
-//         let x = i % self.size.x;
-//         let y = i / self.size.x;
-//         IVec2::new(x as i32,y as i32) 
-//     }
-
-//     pub fn is_in_bounds(&self, p: IVec2) -> bool {
-//         p.cmpge(IVec2::ZERO).all() && p.cmplt(self.size.as_ivec2()).all()
-//     }
-
-//     pub fn get(&self, p: IVec2) -> MapTile {
-//         self.tiles[self.to_index(p.into())]
-//     }
-
-//     pub fn iter(&self) -> Iter<MapTile> {
-//         self.tiles.iter()
-//     }
-// }
-
-// impl Index<[i32;2]> for Map {
-//     type Output = MapTile;
-
-//     fn index(&self, pos: [i32;2]) -> &Self::Output {
-//         &self.tiles[self.to_index(pos)]
-//     }
-// }
-
-// impl IndexMut<[i32;2]> for Map {
-//     fn index_mut(&mut self, pos: [i32;2]) -> &mut Self::Output {
-//         let i = self.to_index(pos);
-//         &mut self.tiles[i]
-//     }
-// }
-
 pub struct MapGenEntities {
-    pub player: PlayerBundle,
+    pub player: Option<Entity>,
     //pub monsters: Vec<MonsterBundle>,
 }
 
@@ -134,7 +86,11 @@ impl MapGenerator {
 
         let map = MapGenerator { map, rooms };
 
-        map.place_player(commands, entities.player);
+        if let Some(player) = entities.player {
+            map.place_player(commands, player);
+        } else {
+            println!("No player found");
+        }
 
         let mut placed: HashSet<IVec2> = HashSet::default();
 
@@ -143,10 +99,12 @@ impl MapGenerator {
         commands.spawn().insert(map.map);
     }
 
-    pub fn place_player(&self, commands: &mut Commands, mut player: PlayerBundle) {
+    pub fn place_player(&self, commands: &mut Commands, player: Entity) {
         let p = self.rooms[0].center();
-        player.move_bundle.position = p.into();
-        commands.spawn().insert_bundle(player);
+
+        // Set the player's position
+        commands.entity(player).insert(Position::from(p));
+        println!("Setting player position to {}", p);
     }
 
     pub fn place_monsters(
@@ -200,8 +158,8 @@ fn generate_rooms(
         let w = rng.gen_range(settings.room_size.clone());
         let h = rng.gen_range(settings.room_size.clone());
 
-        let x = rng.gen_range(1..map.0.right_index() as u32 - w);
-        let y = rng.gen_range(1..map.0.top_index() as u32 - h);
+        let x = rng.gen_range(2..map.0.right_index() as u32 - w - 1);
+        let y = rng.gen_range(2..map.0.top_index() as u32 - h - 1);
 
         let new_room = Rect::from_position_size((x as i32, y as i32), (w as i32, h as i32));
 

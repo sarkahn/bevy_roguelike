@@ -36,8 +36,8 @@ impl MonsterBundle {
 
     pub fn get_from_index(index: u32) -> MonsterBundle {
         match index {
-            1 => MonsterBundle::new_goblin(),
-            2 => MonsterBundle::new_orc(),
+            0 => MonsterBundle::new_goblin(),
+            1 => MonsterBundle::new_orc(),
             _ => MonsterBundle::new_goblin(),
         }
     }

@@ -12,3 +12,11 @@ ron = "0.7.0"
 serde = "1.0.117"
 adam_fov_rs = { path = "../adam_fov_rs", version = "0.1.2" }
 sark_grids = { path = "../sark_grids", version = "0.1.4" }
+gloo-events = "0.1.1"
+web-sys = { version = "0.3.45", features = ["Element", "Document", "Window"] }
+futures = "0.3"
+bevy_easings = "0.5.0"
+
+[profile.release]
+opt-level = 's'
+lto = true
