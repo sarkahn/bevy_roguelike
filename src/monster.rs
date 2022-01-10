@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_ascii_terminal::RED;
 
-use crate::{bundle::MovingEntityBundle, map_state::PathBlocker, visibility::MapView, turn_system::{Energy, TakingATurn}};
+use crate::{bundle::MovingEntityBundle, map_state::PathBlocker, visibility::MapView, turn_system::{Energy, TakingATurn}, combat::{CombatantBundle, HitPoints, MaxHitPoints, Defense, AttackPower}};
 
 pub struct MonstersPlugin;
 
@@ -18,6 +18,8 @@ pub struct Monster;
 pub struct MonsterBundle {
     #[bundle]
     pub movable: MovingEntityBundle,
+    #[bundle]
+    pub combatant_bundle: CombatantBundle,
     pub monster: Monster,
     pub name: Name,
     pub blocker: PathBlocker,
@@ -28,6 +30,12 @@ impl MonsterBundle {
     pub fn new_goblin() -> Self {
         MonsterBundle {
             movable: MovingEntityBundle::new(RED, 'g', 15),
+            combatant_bundle: CombatantBundle {
+                hp: HitPoints(12),
+                max_hp: MaxHitPoints(12),
+                defense: Defense(0),
+                attack: AttackPower(2),
+            },
             monster: Default::default(),
             name: Name::new("Goblin"),
             blocker: Default::default(),
@@ -38,6 +46,12 @@ impl MonsterBundle {
     pub fn new_orc() -> Self {
         Self {
             movable: MovingEntityBundle::new(RED, 'o', 10),
+            combatant_bundle: CombatantBundle {
+                hp: HitPoints(18),
+                max_hp: MaxHitPoints(18),
+                defense: Defense(2),
+                attack: AttackPower(3),
+            },
             monster: Default::default(),
             name: Name::new("Orc"),
             blocker: Default::default(),

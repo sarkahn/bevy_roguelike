@@ -5,7 +5,7 @@ use crate::{
     map::{Map, MapTile},
     movement::Position,
     player::Player,
-    visibility::{MapMemory, MapView, VIEW_SYSTEM_LABEL}, GameTerminal,
+    visibility::{MapMemory, MapView, VIEW_SYSTEM_LABEL}, GameTerminal, combat::ActorKilledEvent,
 };
 
 pub const WALL_COLOR: TileColor = TileColor { r:221, g:226, b:225, a: u8::MAX};
@@ -17,14 +17,13 @@ pub const RENDER_SYSTEM_LABEL: &str = "GAME_RENDER_SYSTEM";
 pub struct RenderPlugin;
 impl Plugin for RenderPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(
+        app.add_system_set_to_stage(CoreStage::Last, 
             SystemSet::new()
-                .with_run_criteria(should_render.system())
-                .with_system(
-                    render
-                    .after(VIEW_SYSTEM_LABEL)
-                    .label(RENDER_SYSTEM_LABEL)
-                ),
+            .with_run_criteria(should_render.system())
+            .with_system(
+                render
+                .label(RENDER_SYSTEM_LABEL)
+            ),
         )
         .add_plugin(TerminalPlugin);
     }
@@ -195,11 +194,13 @@ where
 fn should_render(
     q_entities_changed: Query<(&Renderable, &Position), Changed<Position>>,
     q_map_changed: Query<&Map, Changed<Map>>,
+    mut evt_killed: EventReader<ActorKilledEvent>,
 ) -> ShouldRun {
     let entities_changed = q_entities_changed.iter().next().is_some();
     let map_changed = q_map_changed.iter().next().is_some();
+    let killed = evt_killed.iter().next().is_some();
 
-    if map_changed || entities_changed {
+    if map_changed || entities_changed || killed {
         return ShouldRun::Yes;
     }
 

@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 bevy = { version = "0.6", default-features = false, features = ["png", "bevy_winit", "render"] }
-bevy_ascii_terminal = { path = "../bevy_ascii_terminal", version = "0.8.0" }
+bevy_ascii_terminal = { path = "../bevy_ascii_terminal", version = "0.8.1" }
 bevy_tiled_camera = { path = "../bevy_tiled_camera", version = "0.3.0" }
 rand = "0.8.4"
 ron = "0.7.0"

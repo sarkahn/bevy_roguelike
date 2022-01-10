@@ -17,6 +17,7 @@ mod ui;
 mod events;
 mod web_resize;
 mod turn_system;
+mod combat;
 
 use map::*;
 use player::PlayerBundle;
@@ -63,6 +64,7 @@ fn main() {
         .add_plugin(web_resize::FullViewportPlugin)
         .add_plugin(turn_system::TurnSystemPlugin)
         .add_plugin(monster::MonstersPlugin)
+        .add_plugin(combat::CombatPlugin)
         .add_plugin(ui::UiPlugin)
         .add_startup_system(setup)
         .insert_resource(ClearColor(Color::BLACK))
