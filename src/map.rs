@@ -3,7 +3,7 @@ use bevy::{
     prelude::*,
     utils::HashSet,
 };
-use rand::{prelude::StdRng, Rng, SeedableRng};
+use rand::{prelude::{StdRng, ThreadRng}, Rng, SeedableRng};
 use sark_grids::Grid;
 
 use crate::{config::{MapGenSettings, self}, monster::MonsterBundle, player::{PlayerBundle, PLAYER_SETUP_LABEL, Player}, shapes::Rect, GAME_SIZE, movement::Position};
@@ -36,7 +36,8 @@ fn setup(
 
     //settings.map_size;
 
-    let rng = StdRng::seed_from_u64(settings.seed);
+    //let rng = StdRng::seed_from_u64(settings.seed);
+    let rng = StdRng::from_rng(ThreadRng::default()).unwrap();
 
     let player = q_player.get_single().map_or_else(|_|None,|(e,_)|Some(e));
     let entities = MapGenEntities {
