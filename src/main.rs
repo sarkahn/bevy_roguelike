@@ -16,6 +16,7 @@ mod visibility;
 mod ui;
 mod events;
 mod web_resize;
+mod turn_system;
 
 use map::*;
 use player::PlayerBundle;
@@ -60,6 +61,8 @@ fn main() {
         .add_plugin(visibility::VisiblityPlugin)
         .add_plugin(map_state::MapStatePlugin)
         .add_plugin(web_resize::FullViewportPlugin)
+        .add_plugin(turn_system::TurnSystemPlugin)
+        .add_plugin(monster::MonstersPlugin)
         .add_plugin(ui::UiPlugin)
         .add_startup_system(setup)
         .insert_resource(ClearColor(Color::BLACK))

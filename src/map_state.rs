@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use sark_grids::Grid;
 
 use crate::{
     map::{Map, MapTile},
@@ -25,9 +26,9 @@ impl Plugin for MapStatePlugin {
 pub struct PathBlocker;
 
 #[derive(Component, Default)]
-pub struct MapObstacles(pub Vec<bool>);
+pub struct MapObstacles(pub Grid<bool>);
 #[derive(Component, Default)]
-pub struct MapActors(pub Vec<Option<Entity>>);
+pub struct MapActors(pub Grid<Option<Entity>>);
 
 fn update_map_state_system(
     q_moved_actors: Query<&Position, (With<PathBlocker>, Changed<Position>)>,
@@ -45,11 +46,11 @@ fn update_map_state_system(
 
     if let Ok(map) = q_changed_map.get_single() {
         if blockers.0.len() != map.0.len() {
-            blockers.0 = vec![false; map.0.len()];
+            blockers.0 = Grid::default(map.0.size().into());
         }
 
         if entities.0.len() != map.0.len() {
-            entities.0 = vec![None; map.0.len()];
+            entities.0 = Grid::default(map.0.size().into());
         }
 
         for (i, tile) in map.0.iter().enumerate() {

@@ -7,7 +7,7 @@ use crate::{
     map_state::{MapActors, MapObstacles},
     monster::Monster,
     movement::{Movement, Position},
-    visibility::{MapMemory, MapView, ViewRange}, events::AttackEvent,
+    visibility::{MapMemory, MapView, ViewRange}, events::AttackEvent, turn_system::{TakingATurn, Energy},
 };
 
 pub const PLAYER_SETUP_LABEL: &str = "PLAYER_SETUP_SYSTEM";
@@ -46,7 +46,7 @@ pub struct PlayerBundle {
 impl Default for PlayerBundle {
     fn default() -> Self {
         Self {
-            move_bundle: MovingEntityBundle::new(WHITE, '@'),
+            move_bundle: MovingEntityBundle::new(WHITE, '@', 12),
             player: Default::default(),
             view: Default::default(),
             memory: Default::default(),
@@ -56,43 +56,47 @@ impl Default for PlayerBundle {
 }
 
 fn player_input(
-    mut q_player: Query<(&Position, &mut Movement), With<Player>>,
-    q_map: Query<&Map>,
+    mut q_player: Query<(Entity, &mut Position, &mut Energy, &mut Movement), (With<Player>, With<TakingATurn>)>,
     q_monsters: Query<&Name, With<Monster>>,
     input: Res<Input<KeyCode>>,
-    obstacles: Res<MapObstacles>,
-    actors: Res<MapActors>,
+    mut obstacles: ResMut<MapObstacles>,
+    mut actors: ResMut<MapActors>,
     mut event_attack: EventWriter<AttackEvent>,
 ) {
-    if let Ok((pos, mut movement)) = q_player.get_single_mut() {
-        if let Ok(map) = q_map.get_single() {
-            let input = read_movement(&input);
+    if let Ok((entity, mut pos, mut energy, mut movement)) = q_player.get_single_mut() {
+        let input = read_movement(&input);
 
-            if input.cmpeq(IVec2::ZERO).all() {
-                return;
-            }
+        if input.cmpeq(IVec2::ZERO).all() {
+            return;
+        }
 
-            let curr = IVec2::from(pos.0);
+        let curr = IVec2::from(pos.0);
 
-            let next = curr + input;
+        let next = curr + input;
 
-            let next_i = map.0.pos_to_index(next.into());
-
-            if obstacles.0[next_i] {
-                if let Some(entity) = actors.0[next_i] {
-                    if let Ok(name) = q_monsters.get(entity) {
-                        //println!("You bumped into {}", name.as_str());
-                        event_attack.send(AttackEvent {
-                            attacker_name: "Player".to_string(),
-                            defender_name: format!("the {}", name.to_string()),
-                        });
-                        return;
-                    }
+        if obstacles.0[next] {
+            if let Some(entity) = actors.0[next] {
+                if let Ok(name) = q_monsters.get(entity) {
+                    //println!("You bumped into {}", name.as_str());
+                    event_attack.send(AttackEvent {
+                        attacker_name: "Player".to_string(),
+                        defender_name: format!("the {}", name.to_string()),
+                    });
+                    //println!("Player attacked a monster, ending their turn.");
+                    energy.0 = 0;
                 }
             }
-
-            movement.0 = input.into();
+            return;
         }
+
+        //println!("Player moved, ending their turn");
+        pos.0 = next.into();
+        energy.0 = 0;
+        actors.0[curr] = None;
+        actors.0[next] = Some(entity);
+        obstacles.0[curr] = false;
+        obstacles.0[next] = true;
+        movement.0 = input.into();
     }
 }
 
