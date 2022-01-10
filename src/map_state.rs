@@ -2,8 +2,7 @@ use bevy::prelude::*;
 use sark_grids::Grid;
 
 use crate::{
-    map::{Map, MapTile},
-    movement::{Position, ACTOR_MOVE_SYSTEM_LABEL},
+    map::{Map, MapTile}, movement::Position,
 };
 
 pub const UPDATE_MAP_STATE_SYSTEM_LABEL: &str = "update_map_state_system";
@@ -15,7 +14,6 @@ impl Plugin for MapStatePlugin {
         app.add_system(
             update_map_state_system
                 .label(UPDATE_MAP_STATE_SYSTEM_LABEL)
-                .after(ACTOR_MOVE_SYSTEM_LABEL),
         )
         .init_resource::<MapObstacles>()
         .init_resource::<MapActors>();

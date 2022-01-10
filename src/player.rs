@@ -19,7 +19,7 @@ impl Plugin for PlayerPlugin {
         app
         .add_startup_system_to_stage(StartupStage::PreStartup, spawn_player)
         //.add_startup_system(spawn_player.label(PLAYER_SETUP_LABEL))
-        .add_system(player_input);
+        .add_system_to_stage(CoreStage::PreUpdate, player_input);
         
     }
 }

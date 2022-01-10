@@ -3,8 +3,6 @@ use bevy::prelude::*;
 use crate::map::*;
 use serde::Deserialize;
 
-pub const ACTOR_MOVE_SYSTEM_LABEL: &str = "actor_movement_system";
-
 /// Component for tracking entity positions on the map.
 #[derive(Component, Debug, Deserialize, Default)]
 pub struct Position(pub [i32;2]);
