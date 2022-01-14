@@ -1,5 +1,4 @@
 use bevy::prelude::*;
-use bevy_ascii_terminal::{TileColor, BLACK};
 
 use crate::{
     movement::{Movement, Position},
@@ -17,11 +16,11 @@ pub struct MovingEntityBundle {
 }
 
 impl MovingEntityBundle {
-    pub fn new(fg_color: TileColor, glyph: char, speed: i32) -> Self {
+    pub fn new(fg_color: Color, glyph: char, speed: i32) -> Self {
         Self {
             renderable: Renderable {
                 fg_color,
-                bg_color: BLACK,
+                bg_color: Color::BLACK,
                 glyph,
             },
             speed: Speed(speed),

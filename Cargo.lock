@@ -20,7 +20,7 @@ checksum = "a13739d7177fbd22bb0ed28badfff9f372f8bef46c863db4e1c6248f6b223b6e"
 
 [[package]]
 name = "adam_fov_rs"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "glam",
 ]
@@ -188,10 +188,11 @@ dependencies = [
 
 [[package]]
 name = "bevy_ascii_terminal"
-version = "0.8.1"
+version = "0.9.0"
 dependencies = [
  "bevy",
  "bitflags",
+ "itertools",
  "ron 0.6.6",
  "sark_grids",
 ]
@@ -2074,7 +2075,7 @@ checksum = "73b4b750c782965c211b42f022f59af1fbceabdd026623714f104152f1ec149f"
 
 [[package]]
 name = "sark_grids"
-version = "0.1.4"
+version = "0.1.5"
 dependencies = [
  "glam",
  "itertools",

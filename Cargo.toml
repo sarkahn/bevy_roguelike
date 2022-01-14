@@ -5,12 +5,12 @@ edition = "2021"
 
 [dependencies]
 bevy = { version = "0.6", default-features = false, features = ["png", "bevy_winit", "render"] }
-bevy_ascii_terminal = { path = "../bevy_ascii_terminal", version = "0.8.1" }
+bevy_ascii_terminal = { path = "../bevy_ascii_terminal", version = "0.9.0" }
 bevy_tiled_camera = { path = "../bevy_tiled_camera", version = "0.3.0" }
 rand = "0.8.4"
 ron = "0.7.0"
 serde = "1.0.117"
-adam_fov_rs = { path = "../adam_fov_rs", version = "0.1.2" }
+adam_fov_rs = { path = "../adam_fov_rs", version = "0.1.3" }
 sark_grids = { path = "../sark_grids", version = "0.1.4" }
 gloo-events = "0.1.1"
 web-sys = { version = "0.3.45", features = ["Element", "Document", "Window"] }
