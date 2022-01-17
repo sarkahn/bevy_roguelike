@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bracket_random::prelude::DiceType;
 
 use crate::{ui::PrintLog, map_state::{MapObstacles, MapActors}, movement::Position};
 
@@ -30,14 +31,18 @@ pub struct HitPoints(pub i32);
 pub struct Defense(pub i32);
 
 #[derive(Default, Debug, Component)]
-pub struct AttackPower(pub i32);
+pub struct Strength(pub i32);
+
+#[derive(Default, Debug, Component)]
+pub struct AttackDice(pub DiceType);
 
 #[derive(Debug, Bundle)]
 pub struct CombatantBundle {
     pub hp: HitPoints,
     pub max_hp: MaxHitPoints,
     pub defense: Defense,
-    pub attack: AttackPower,
+    pub strength: Strength,
+    pub attack_dice: AttackDice,
 }
 
 pub enum ActorEffect {
@@ -57,7 +62,7 @@ pub struct ActorKilledEvent {
 
 fn resolve_target_events(
     q_names: Query<&Name>,
-    q_attack: Query<&mut AttackPower>,
+    q_attack: Query<&mut Strength>,
     mut q_defend: Query<(&mut HitPoints, &MaxHitPoints, &Defense)>,
     mut log: ResMut<PrintLog>,
     mut target_events: EventReader<TargetEvent>,
@@ -99,18 +104,6 @@ fn resolve_target_events(
                                 log.push(format!("{} attacks {} for {} damage.", actor_name.as_str(), target_name.as_str(), amount));
                             } 
                         } 
-                    }
-                }
-                
-                // TEMP!
-                if let Ok(attack) = q_attack.get(tar) {
-                    if let Ok((mut hp, _, def)) = q_defend.get_mut(actor) {
-                        let amount = attack.0 - def.0;
-
-                        if amount <= 0 {
-                            continue;
-                        }
-                        hp.0 -= amount;
                     }
                 }
             },

@@ -1,4 +1,5 @@
 use bevy::{math::IVec2, prelude::*};
+use sark_grids::Grid;
 
 use crate::{
     map::{Map, MapTile},
@@ -22,7 +23,7 @@ impl Plugin for VisiblityPlugin {
 pub struct MapMemory(pub Vec<bool>);
 
 #[derive(Component, Debug, Default)]
-pub struct MapView(pub Vec<bool>);
+pub struct MapView(pub Grid<bool>);
 
 #[derive(Component, Debug, Default)]
 pub struct ViewRange(pub u32);
@@ -74,7 +75,7 @@ fn view_system(
             let view_vec = &mut view.0;
 
             if view_vec.len() != map.0.len() {
-                *view_vec = vec![false; map.0.len()];
+                *view_vec = Grid::default(map.0.size().into());//vec![false; map.0.len()];
             }
 
             for b in view_vec.iter_mut() {
@@ -102,7 +103,7 @@ fn view_memory_system(
             let view_vec = &mut view.0;
 
             if view_vec.len() != map.0.len() {
-                *view_vec = vec![false; map.0.len()];
+                *view_vec = Grid::default(map.0.size().into());//vec![false; map.0.len()];
             }
 
             // Reset our view but not our memory

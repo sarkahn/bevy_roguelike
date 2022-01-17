@@ -5,11 +5,11 @@ use crate::{
     map::{Map, MapTile},
     movement::Position,
     player::Player,
-    visibility::{MapMemory, MapView, VIEW_SYSTEM_LABEL}, GameTerminal, combat::ActorKilledEvent,
+    visibility::{MapMemory, MapView}, GameTerminal, combat::ActorKilledEvent,
 };
 
-pub const WALL_COLOR: TileColor = TileColor { r:221, g:226, b:225, a: u8::MAX};
-pub const FLOOR_COLOR: TileColor = TileColor { r: 155, g: 118, b: 83, a: u8::MAX };
+pub const WALL_COLOR: Color = Color::Rgba{ red:0.866, green:0.866, blue:0.882, alpha: 1.0};
+pub const FLOOR_COLOR: Color = Color::Rgba{ red:0.602, green:0.462, blue:0.325, alpha: 1.0};
 
 pub const RENDER_SYSTEM_LABEL: &str = "GAME_RENDER_SYSTEM";
 
@@ -31,8 +31,8 @@ impl Plugin for RenderPlugin {
 
 #[derive(Component, Debug)]
 pub struct Renderable {
-    pub fg_color: TileColor,
-    pub bg_color: TileColor,
+    pub fg_color: Color,
+    pub bg_color: Color,
     pub glyph: char,
 }
 
@@ -78,12 +78,12 @@ impl From<MapTile> for Tile {
             MapTile::Wall => Tile {
                 glyph: '#',
                 fg_color: WALL_COLOR,
-                bg_color: BLACK,
+                bg_color: Color::BLACK,
             },
             MapTile::Floor => Tile {
                 glyph: '.',
                 fg_color: FLOOR_COLOR,
-                bg_color: BLACK,
+                bg_color: Color::BLACK,
             },
         }
     }
@@ -124,11 +124,10 @@ where
     Actors: Iterator<Item = (&'a Renderable, &'a Position)>,
 {
     for (renderable, pos) in actors {
-        let [x, y] = pos.0;
-        let i = map.0.pos_to_index( [x, y] );
+        let i = map.0.pos_to_index( pos.0.into() );
 
         if view.0[i] {
-            term.put_tile([x, y], Tile::from(renderable));
+            term.put_tile(pos.0.into(), Tile::from(renderable));
         }
     }
 }
@@ -147,12 +146,11 @@ fn render_memory(memory: &MapMemory, map: &Map, term: &mut Terminal) {
     }
 }
 
-fn greyscale(c: TileColor) -> TileColor {
+fn greyscale(c: Color) -> Color {
     let [r, g, b, _]: [f32; 4] = c.into();
     let grey = 0.2126 * r + 0.7152 * g + 0.0722 * b;
     let grey = grey / 8.0;
-    let grey = (grey * 255.0) as u8;
-    TileColor::rgb(grey, grey, grey)
+    Color::rgb(grey, grey, grey)
 }
 
 fn render_everything<'a, Actors>(map: &Map, term: &mut Terminal, actors: Actors)
@@ -169,12 +167,12 @@ fn render_full_map(map: &Map, term: &mut Terminal) {
                 MapTile::Wall => Tile {
                     glyph: '#',
                     fg_color: WALL_COLOR,
-                    bg_color: BLACK,
+                    bg_color: Color::BLACK,
                 },
                 MapTile::Floor => Tile {
                     glyph: '.',
                     fg_color: FLOOR_COLOR,
-                    bg_color: BLACK,
+                    bg_color: Color::BLACK,
                 },
             };
             term.put_tile([x as i32, y as i32], tile);
@@ -187,7 +185,8 @@ where
     Entities: Iterator<Item = (&'a Renderable, &'a Position)>,
 {
     for (r, pos) in entities {
-        term.put_char_color(pos.0, r.glyph, r.fg_color, r.bg_color);
+        let fmt = CharFormat::new(r.fg_color, r.bg_color);
+        term.put_char_formatted(pos.0.into(), r.glyph, fmt);
     }
 }
 

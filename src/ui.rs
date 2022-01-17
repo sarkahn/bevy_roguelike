@@ -24,7 +24,7 @@ impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
         app.add_startup_system(setup)
         .add_system(handle_attacks)
-        .add_system(handle_print.after(RENDER_SYSTEM_LABEL))
+        .add_system(handle_print)
         .init_resource::<PrintLog>()
         ;
     }
@@ -81,7 +81,8 @@ fn handle_print(
             let (t, min,max) = (i as f32 / 6.0, 0.15, 1.0);
             let alpha = f32::lerp(&min, &max, &t);
             let y = term.top_index() as i32 - 1 - i as i32;
-            term.put_string_color([1,y], s, Color::rgba(1.0, 1.0, 1.0, 1.0 - alpha).into(), BLACK);
+            let fmt = StringFormat::colors(Color::rgba(1.0, 1.0, 1.0, 1.0 - alpha), Color::BLACK);
+            term.put_string_formatted([1,y], s, fmt);
         }
 
         if let Ok((hp, max)) = q_player.get_single() {
@@ -91,7 +92,8 @@ fn handle_print(
             let bar_x = term.width() as i32 - bar_width - 1;
             let hp_x = bar_x - hp_string.len() as i32 - 1;
 
-            term.put_string_color([hp_x, y], hp_string.as_str(), Color::YELLOW.into(), BLACK);
+            let fmt = StringFormat::colors(Color::YELLOW, Color::BLACK);
+            term.put_string_formatted([hp_x, y], hp_string.as_str(), fmt);
 
             term.draw_horizontal_bar_color([bar_x, y], bar_width, hp.0, max.0, Color::RED, Color::rgb(0.05, 0.05, 0.05));
         }

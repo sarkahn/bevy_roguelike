@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use bevy_ascii_terminal::*;
+use bracket_random::prelude::DiceType;
 
 use crate::{
     bundle::MovingEntityBundle,
@@ -7,7 +8,7 @@ use crate::{
     map_state::{MapActors, MapObstacles},
     monster::Monster,
     movement::{Movement, Position},
-    visibility::{MapMemory, MapView, ViewRange}, events::AttackEvent, turn_system::{TakingATurn, Energy}, combat::{CombatantBundle, HitPoints, MaxHitPoints, Defense, AttackPower, TargetEvent, ActorEffect},
+    visibility::{MapMemory, MapView, ViewRange}, events::AttackEvent, turn_system::{TakingATurn, Energy}, combat::{CombatantBundle, HitPoints, MaxHitPoints, Defense, Strength, TargetEvent, ActorEffect, AttackDice}, rng::DiceRng,
 };
 
 pub const PLAYER_SETUP_LABEL: &str = "PLAYER_SETUP_SYSTEM";
@@ -49,12 +50,13 @@ pub struct PlayerBundle {
 impl Default for PlayerBundle {
     fn default() -> Self {
         Self {
-            move_bundle: MovingEntityBundle::new(WHITE, '@', 12),
+            move_bundle: MovingEntityBundle::new(Color::WHITE, '@', 25),
             combatant_bundle: CombatantBundle {
-                hp: HitPoints(50),
-                max_hp: MaxHitPoints(50),
-                defense: Defense(2),
-                attack: AttackPower(5),
+                hp: HitPoints(60),
+                max_hp: MaxHitPoints(60),
+                defense: Defense(1),
+                strength: Strength(3),
+                attack_dice: AttackDice(DiceType::new(5,3,0)),
             },
             player: Default::default(),
             view: Default::default(),
@@ -67,40 +69,41 @@ impl Default for PlayerBundle {
 }
 
 fn player_input(
-    mut q_player: Query<(Entity, &AttackPower, &mut Position, &mut Energy, &mut Movement), (With<Player>, With<TakingATurn>)>,
+    mut q_player: Query<(Entity, &Strength, &mut Position, &mut Energy, &AttackDice, &mut Movement), (With<Player>, With<TakingATurn>)>,
     q_monsters: Query<&Name, With<Monster>>,
     input: Res<Input<KeyCode>>,
     mut obstacles: ResMut<MapObstacles>,
     mut actors: ResMut<MapActors>,
     mut event_attack: EventWriter<AttackEvent>,
     mut evt_attack: EventWriter<TargetEvent>,
+    mut rng: Local<DiceRng>,
 ) {
-    if let Ok((entity, attack, mut pos, mut energy, mut movement)) = q_player.get_single_mut() {
-        let input = read_movement(&input);
+    if let Ok((entity, attack, mut pos, mut energy, dice, mut movement)) = q_player.get_single_mut() {
+        if read_wait(&input) {
+            energy.0 = 0;
+            return;
+        }
 
-        if input.cmpeq(IVec2::ZERO).all() {
+        let move_input = read_movement(&input);
+        if move_input.cmpeq(IVec2::ZERO).all() {
             return;
         }
 
         let curr = IVec2::from(pos.0);
 
-        let next = curr + input;
+        let next = curr + move_input;
+
+        let attack = rng.roll(dice.0);
 
         if obstacles.0[next] {
             if let Some(target) = actors.0[next] {
-                if let Ok(name) = q_monsters.get(target) {
+                if let Ok(_name) = q_monsters.get(target) {
                     evt_attack.send( TargetEvent {
                         actor: entity,
                         target,
-                        effect: ActorEffect::Damage(attack.0),
+                        effect: ActorEffect::Damage(attack),
                     });
 
-                    //println!("You bumped into {}", name.as_str());
-                    // event_attack.send(AttackEvent {
-                    //     attacker_name: "Player".to_string(),
-                    //     defender_name: format!("the {}", name.to_string()),
-                    // });
-                    //println!("Player attacked a monster, ending their turn.");
                     energy.0 = 0;
                 }
             }
@@ -114,7 +117,7 @@ fn player_input(
         actors.0[next] = Some(entity);
         obstacles.0[curr] = false;
         obstacles.0[next] = true;
-        movement.0 = input.into();
+        movement.0 = move_input.into();
     }
 }
 
@@ -125,7 +128,7 @@ fn read_movement(input: &Input<KeyCode>) -> IVec2 {
         p.x = -1;
         p.y = -1;
     }
-    if input.just_pressed(KeyCode::Numpad2) || input.just_pressed(KeyCode::X) || input.just_pressed(KeyCode::S) || input.just_pressed(KeyCode::Down) {
+    if input.just_pressed(KeyCode::Numpad2) || input.just_pressed(KeyCode::X) || input.just_pressed(KeyCode::Down) {
         p.y = -1;
     }
     if input.just_pressed(KeyCode::Numpad3) || input.just_pressed(KeyCode::C) {
@@ -150,4 +153,8 @@ fn read_movement(input: &Input<KeyCode>) -> IVec2 {
         p.y = 1;
     }
     p
+}
+
+fn read_wait(input: &Input<KeyCode>) -> bool { 
+    input.just_pressed(KeyCode::Numpad5) || input.just_pressed(KeyCode::LControl) || input.just_pressed(KeyCode::RControl)
 }

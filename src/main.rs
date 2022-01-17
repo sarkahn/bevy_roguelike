@@ -18,6 +18,7 @@ mod events;
 mod web_resize;
 mod turn_system;
 mod combat;
+mod rng;
 
 use map::*;
 use player::PlayerBundle;
@@ -58,7 +59,6 @@ fn main() {
         .add_plugin(map::MapGenPlugin)
         .add_plugin(render::RenderPlugin)
         .add_plugin(events::EventsPlugin)
-        .add_plugin(movement::MovementPlugin)
         .add_plugin(visibility::VisiblityPlugin)
         .add_plugin(map_state::MapStatePlugin)
         .add_plugin(web_resize::FullViewportPlugin)

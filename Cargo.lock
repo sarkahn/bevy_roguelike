@@ -523,18 +523,20 @@ dependencies = [
 
 [[package]]
 name = "bevy_roguelike"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "adam_fov_rs",
  "bevy",
  "bevy_ascii_terminal",
  "bevy_easings",
  "bevy_tiled_camera",
+ "bracket-random",
  "futures",
  "gloo-events",
  "rand",
  "ron 0.7.0",
  "sark_grids",
+ "sark_pathfinding",
  "serde",
  "web-sys",
 ]
@@ -743,6 +745,18 @@ name = "block"
 version = "0.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0d8c1fef690941d3e7788d328517591fecc684c084084702d6ff1641e993699a"
+
+[[package]]
+name = "bracket-random"
+version = "0.8.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "66b5b977a40a6be337b2baff6911051966c61bd3987836c13e96f518ec4ba312"
+dependencies = [
+ "lazy_static",
+ "rand",
+ "rand_xorshift",
+ "regex",
+]
 
 [[package]]
 name = "bumpalo"
@@ -1978,6 +1992,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "rand_xorshift"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d25bf25ec5ae4a3f1b92f929810509a2f53d7dca2f50b794ff57e3face536c8f"
+dependencies = [
+ "rand_core",
+]
+
+[[package]]
 name = "range-alloc"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2079,6 +2102,16 @@ version = "0.1.5"
 dependencies = [
  "glam",
  "itertools",
+]
+
+[[package]]
+name = "sark_pathfinding"
+version = "0.1.2"
+dependencies = [
+ "ahash",
+ "arrayvec",
+ "glam",
+ "smallvec",
 ]
 
 [[package]]
