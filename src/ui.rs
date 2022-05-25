@@ -9,8 +9,10 @@ pub struct UiPlugin;
 #[derive(Component)]
 pub struct UiTerminal;
 
+/// Log for terminal messages to be displayed to the user.
 #[derive(Default)]
 pub struct PrintLog {
+    /// History of logged messages
     log: Vec<String>,
 }
 
@@ -77,12 +79,12 @@ fn handle_print(
             bottom_right: '┘',
         };
         term.draw_border(border);
-        for (i,s) in print_log.log.iter().rev().enumerate().take(6) {
+        for (i,text) in print_log.log.iter().rev().enumerate().take(6) {
             let (t, min,max) = (i as f32 / 6.0, 0.15, 1.0);
             let alpha = f32::lerp(&min, &max, &t);
             let y = term.top_index() as i32 - 1 - i as i32;
             let fmt = StringFormat::colors(Color::rgba(1.0, 1.0, 1.0, 1.0 - alpha), Color::BLACK);
-            term.put_string_formatted([1,y], s, fmt);
+            term.put_string_formatted([1,y], text, fmt);
         }
 
         if let Ok((hp, max)) = q_player.get_single() {

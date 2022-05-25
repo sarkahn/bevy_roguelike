@@ -14,8 +14,8 @@ pub struct VisiblityPlugin;
 
 impl Plugin for VisiblityPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(view_system.system().label(VIEW_SYSTEM_LABEL))
-            .add_system(view_memory_system.system().before(VIEW_SYSTEM_LABEL));
+        app.add_system(view_system.label(VIEW_SYSTEM_LABEL))
+            .add_system(view_memory_system.before(VIEW_SYSTEM_LABEL));
     }
 }
 

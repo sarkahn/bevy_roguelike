@@ -10,8 +10,6 @@ use crate::{
     visibility::{MapMemory, MapView, ViewRange}, events::AttackEvent, turn_system::{TakingATurn, Energy}, combat::{CombatantBundle, HitPoints, MaxHitPoints, Defense, Strength, TargetEvent, ActorEffect, AttackDice}, rng::DiceRng,
 };
 
-pub const PLAYER_SETUP_LABEL: &str = "PLAYER_SETUP_SYSTEM";
-
 pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
