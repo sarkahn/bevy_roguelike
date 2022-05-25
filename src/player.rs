@@ -1,10 +1,9 @@
 use bevy::prelude::*;
-use bevy_ascii_terminal::*;
+
 use bracket_random::prelude::DiceType;
 
 use crate::{
     bundle::MovingEntityBundle,
-    map::Map,
     map_state::{MapActors, MapObstacles},
     monster::Monster,
     movement::{Movement, Position},
@@ -74,11 +73,11 @@ fn player_input(
     input: Res<Input<KeyCode>>,
     mut obstacles: ResMut<MapObstacles>,
     mut actors: ResMut<MapActors>,
-    mut event_attack: EventWriter<AttackEvent>,
+    _event_attack: EventWriter<AttackEvent>,
     mut evt_attack: EventWriter<TargetEvent>,
     mut rng: Local<DiceRng>,
 ) {
-    if let Ok((entity, attack, mut pos, mut energy, dice, mut movement)) = q_player.get_single_mut() {
+    if let Ok((entity, _attack, mut pos, mut energy, dice, mut movement)) = q_player.get_single_mut() {
         if read_wait(&input) {
             energy.0 = 0;
             return;

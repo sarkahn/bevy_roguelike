@@ -19,7 +19,7 @@ impl Plugin for RenderPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set_to_stage(CoreStage::Last, 
             SystemSet::new()
-            .with_run_criteria(should_render.system())
+            .with_run_criteria(should_render)
             .with_system(
                 render
                 .label(RENDER_SYSTEM_LABEL)

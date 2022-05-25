@@ -22,7 +22,7 @@
 
 
 use bevy::{
-    prelude::{App, IntoSystem, Plugin, Res, ResMut},
+    prelude::{App, Plugin, Res, ResMut},
     window::Windows,
 };
 use std::sync::{

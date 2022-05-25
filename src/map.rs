@@ -6,7 +6,7 @@ use bevy::{
 use rand::{prelude::{StdRng, ThreadRng}, Rng, SeedableRng};
 use sark_grids::Grid;
 
-use crate::{config::{MapGenSettings, self}, monster::MonsterBundle, player::{PlayerBundle, PLAYER_SETUP_LABEL, Player}, shapes::Rect, GAME_SIZE, movement::Position};
+use crate::{config::{MapGenSettings}, monster::MonsterBundle, player::{Player}, shapes::Rect, GAME_SIZE, movement::Position};
 
 pub struct MapGenPlugin;
 

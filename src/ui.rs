@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_ascii_terminal::*;
 
-use crate::{UI_SIZE, GAME_SIZE, VIEWPORT_SIZE, events::AttackEvent, render::RENDER_SYSTEM_LABEL, combat::{HitPoints, MaxHitPoints}, player::Player};
+use crate::{UI_SIZE, VIEWPORT_SIZE, events::AttackEvent, combat::{HitPoints, MaxHitPoints}, player::Player};
 use bevy_easings::Lerp;
 
 pub struct UiPlugin;
@@ -45,10 +45,10 @@ fn setup(
 }
 
 fn handle_attacks(
-    mut print_log: ResMut<PrintLog>,
+    _print_log: ResMut<PrintLog>,
     mut event_attacked: EventReader<AttackEvent>,
 ) {
-    for ev in event_attacked.iter() {
+    for _ev in event_attacked.iter() {
         //print_log.push(format!("{} attacked {}", ev.attacker_name, ev.defender_name));
     }
 }

@@ -88,7 +88,7 @@ fn resolve_target_events(
                 }
             },
             ActorEffect::Damage(amount) => {
-                if let Ok(attack) = q_attack.get(actor) {
+                if let Ok(_attack) = q_attack.get(actor) {
                     if let Ok((mut hp, _, def)) = q_defend.get_mut(tar) {
                         let amount = amount - def.0;
 

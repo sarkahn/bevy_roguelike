@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use bracket_random::prelude::{RandomNumberGenerator, DiceType};
+use bracket_random::prelude::{DiceType};
 use sark_pathfinding::AStar;
 
 use crate::{
@@ -24,7 +24,7 @@ use crate::{
         Defense, Strength, 
         TargetEvent, 
         ActorEffect, AttackDice
-    }, movement::Position, player::Player, ui::PrintLog, events::AttackEvent, rng::DiceRng};
+    }, movement::Position, player::Player, rng::DiceRng};
 
 pub struct MonstersPlugin;
 
@@ -109,7 +109,7 @@ fn monster_ai(
     mut attack_events: EventWriter<TargetEvent>,
     mut rng: Local<DiceRng>,
 ) {
-    for (entity, mut pos, mut energy, dice, view, name) in q_monster.iter_mut() {
+    for (entity, mut pos, mut energy, dice, view, _name) in q_monster.iter_mut() {
         let pos = &mut pos.0;
         // Check if the player is in view.
 

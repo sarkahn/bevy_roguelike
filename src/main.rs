@@ -1,4 +1,4 @@
-use bevy::{prelude::*, math::XY};
+use bevy::{prelude::*};
 
 use bevy_ascii_terminal::TerminalBundle;
 use bevy_tiled_camera::{TiledCameraBundle, TiledCameraPlugin};
@@ -20,9 +20,9 @@ mod turn_system;
 mod combat;
 mod rng;
 
-use map::*;
-use player::PlayerBundle;
-use rand::{prelude::StdRng, SeedableRng};
+
+
+
 
 #[derive(Component)]
 pub struct GameTerminal;

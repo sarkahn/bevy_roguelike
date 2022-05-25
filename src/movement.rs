@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::map::*;
+
 use serde::Deserialize;
 
 /// Component for tracking entity positions on the map.
