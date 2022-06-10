@@ -3,6 +3,7 @@ use bevy::{
     prelude::*,
     utils::HashSet,
 };
+use bevy_ascii_terminal::Side;
 use rand::{prelude::{StdRng, ThreadRng}, Rng, SeedableRng};
 use sark_grids::Grid;
 
@@ -159,8 +160,8 @@ fn generate_rooms(
         let w = rng.gen_range(settings.room_size.clone());
         let h = rng.gen_range(settings.room_size.clone());
 
-        let x = rng.gen_range(2..map.0.right_index() as u32 - w - 1);
-        let y = rng.gen_range(2..map.0.top_index() as u32 - h - 1);
+        let x = rng.gen_range(2..map.0.side_index(Side::Right) as u32 - w - 1);
+        let y = rng.gen_range(2..map.0.side_index(Side::Top) as u32 - h - 1);
 
         let new_room = Rect::from_position_size((x as i32, y as i32), (w as i32, h as i32));
 

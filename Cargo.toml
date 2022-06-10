@@ -1,18 +1,18 @@
 [package]
 name = "bevy_roguelike"
-version = "0.2.1"
+version = "0.3.0"
 edition = "2021"
 
 [dependencies]
 bevy = { version = "0.7", default-features = false, features = ["png", "bevy_winit", "render"] }
-bevy_ascii_terminal = { version = "0.9.1" }
+bevy_ascii_terminal = { version = "0.10.1" }
 bevy_tiled_camera = { version = "0.3.1" }
 sark_pathfinding = { version="0.1.3" }
 rand = "0.8.4"
 ron = "0.7.0"
 serde = "1.0.117"
 adam_fov_rs = { version = "0.1.4" }
-sark_grids = { version = "0.1.4" }
+sark_grids = { version = "0.3.1" }
 gloo-events = "0.1.1"
 web-sys = { version = "0.3.45", features = ["Element", "Document", "Window"] }
 futures = "0.3"

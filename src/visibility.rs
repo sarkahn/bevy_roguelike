@@ -36,18 +36,18 @@ pub struct VisibilityMap<'a> {
 
 impl<'a> adam_fov_rs::VisibilityMap for VisibilityMap<'a> {
     fn is_opaque(&self, p: IVec2) -> bool {
-        if !self.map.0.is_in_bounds(p) {
+        if !self.map.0.in_bounds(p) {
             return true;
         }
         self.map.0[p] == MapTile::Wall
     }
 
     fn is_in_bounds(&self, p: IVec2) -> bool {
-        self.map.0.is_in_bounds(p)
+        self.map.0.in_bounds(p)
     }
 
     fn set_visible(&mut self, p: IVec2) {
-        let i = self.map.0.pos_to_index(p.into());
+        let i = self.map.0.pos_to_index(p);
 
         self.view.0[i] = true;
 
@@ -75,7 +75,7 @@ fn view_system(
             let view_vec = &mut view.0;
 
             if view_vec.len() != map.0.len() {
-                *view_vec = Grid::default(map.0.size().into());//vec![false; map.0.len()];
+                *view_vec = Grid::default(map.0.size());//vec![false; map.0.len()];
             }
 
             for b in view_vec.iter_mut() {
@@ -103,7 +103,7 @@ fn view_memory_system(
             let view_vec = &mut view.0;
 
             if view_vec.len() != map.0.len() {
-                *view_vec = Grid::default(map.0.size().into());//vec![false; map.0.len()];
+                *view_vec = Grid::default(map.0.size());
             }
 
             // Reset our view but not our memory

@@ -225,15 +225,17 @@ dependencies = [
 
 [[package]]
 name = "bevy_ascii_terminal"
-version = "0.9.1"
+version = "0.10.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7a52bb6301702192ee812d454a9ca83323bbc7a7b499375e568da61bd1cffd51"
+checksum = "4524724a3dc608701a393a574f56093619dd5c5c5550a409a7c2749fcc6d0c4f"
 dependencies = [
+ "anyhow",
+ "arrayvec",
  "bevy 0.7.0",
  "bitflags",
  "itertools",
  "ron 0.6.6",
- "sark_grids 0.2.6",
+ "sark_grids",
 ]
 
 [[package]]
@@ -863,7 +865,7 @@ dependencies = [
 
 [[package]]
 name = "bevy_roguelike"
-version = "0.2.1"
+version = "0.3.0"
 dependencies = [
  "adam_fov_rs",
  "bevy 0.7.0",
@@ -875,7 +877,7 @@ dependencies = [
  "gloo-events",
  "rand",
  "ron 0.7.0",
- "sark_grids 0.1.5",
+ "sark_grids",
  "sark_pathfinding",
  "serde",
  "web-sys",
@@ -2609,19 +2611,9 @@ checksum = "f3f6f92acf49d1b98f7a81226834412ada05458b7364277387724a237f062695"
 
 [[package]]
 name = "sark_grids"
-version = "0.1.5"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4291ad8bb111a211e9ded82c42eb94bc805bdfa0fcc762550534d277c703ce4d"
-dependencies = [
- "glam",
- "itertools",
-]
-
-[[package]]
-name = "sark_grids"
-version = "0.2.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1444adf4a992f5775456786af419d73a013b625a58f491b32dab57f0c1ad0a62"
+checksum = "922fe17f0763d2a026534f1865f8dcc0a175f540cfa67d6609af53e9bffbff7c"
 dependencies = [
  "cast",
  "glam",

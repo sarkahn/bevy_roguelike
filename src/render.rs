@@ -1,5 +1,5 @@
 use bevy::{ecs::schedule::ShouldRun, prelude::*};
-use bevy_ascii_terminal::*;
+use bevy_ascii_terminal::{*, ui::BorderGlyphs};
 
 use crate::{
     map::{Map, MapTile},
@@ -68,7 +68,7 @@ fn render(
         render_everything(map, &mut term, q_entities.iter());
     }
 
-    term.draw_border_single();
+    term.draw_border(BorderGlyphs::single_line());
 }
 
 // TODO: Should be handled by some kind of prefab/asset setup
@@ -114,7 +114,7 @@ fn render_map_in_view(view: &MapView, map: &Map, term: &mut Terminal) {
             let tile = map.0[p];
             
             // Convert to terminal position
-            term.put_tile(p.into(), tile.into());
+            term.put_tile(p, Tile::from(tile));
         }
     }
 }
@@ -124,10 +124,10 @@ where
     Actors: Iterator<Item = (&'a Renderable, &'a Position)>,
 {
     for (renderable, pos) in actors {
-        let i = map.0.pos_to_index( pos.0.into() );
+        let i = map.0.pos_to_index( pos.0 );
 
         if view.0[i] {
-            term.put_tile(pos.0.into(), Tile::from(renderable));
+            term.put_tile(pos.0, Tile::from(renderable));
         }
     }
 }
@@ -141,7 +141,7 @@ fn render_memory(memory: &MapMemory, map: &Map, term: &mut Terminal) {
             let mut tile: Tile = tile.into();
             tile.fg_color = greyscale(tile.fg_color);
 
-            term.put_tile(p.into(), tile);
+            term.put_tile(p, tile);
         }
     }
 }
@@ -185,8 +185,7 @@ where
     Entities: Iterator<Item = (&'a Renderable, &'a Position)>,
 {
     for (r, pos) in entities {
-        let fmt = CharFormat::new(r.fg_color, r.bg_color);
-        term.put_char_formatted(pos.0.into(), r.glyph, fmt);
+        term.put_tile(pos.0, Tile::from(r));
     }
 }
 

@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use bevy_ascii_terminal::*;
+use bevy_ascii_terminal::{*, ui::*};
 
 use crate::{UI_SIZE, VIEWPORT_SIZE, events::AttackEvent, combat::{HitPoints, MaxHitPoints}, player::Player};
 use bevy_easings::Lerp;
@@ -41,7 +41,7 @@ fn setup(
         ..TerminalBundle::new().with_size(UI_SIZE)
     };
 
-    term.terminal.draw_border_single();
+    term.terminal.draw_border(BorderGlyphs::single_line());
 
     commands.spawn_bundle(term).insert(UiTerminal);
 }
@@ -68,36 +68,34 @@ fn handle_print(
         let mut term = q_term.single_mut();
 
         term.clear();
-        let border = BorderGlyphs {
-            left: '│',
-            right: '│',
-            bottom: '─',
-            top: '═',
-            top_left: '╞',
-            top_right: '╡',
-            bottom_left: '└',
-            bottom_right: '┘',
-        };
+        let border = BorderGlyphs::from_string(
+            "╞═╡
+             │ │
+             └─┘"
+        );
         term.draw_border(border);
         for (i,text) in print_log.log.iter().rev().enumerate().take(6) {
             let (t, min,max) = (i as f32 / 6.0, 0.15, 1.0);
             let alpha = f32::lerp(&min, &max, &t);
-            let y = term.top_index() as i32 - 1 - i as i32;
-            let fmt = StringFormat::colors(Color::rgba(1.0, 1.0, 1.0, 1.0 - alpha), Color::BLACK);
-            term.put_string_formatted([1,y], text, fmt);
+            let y = term.side_index(Side::Top) as i32 - 1 - i as i32;
+            let fg_color = Color::rgba(1.0, 1.0, 1.0, 1.0 - alpha);
+            term.put_string([1,y], text.fg(fg_color));
         }
 
         if let Ok((hp, max)) = q_player.get_single() {
             let hp_string = format!("HP: {} / {}", hp.0.to_string(), max.0.to_string());
-            let y = term.top_index() as i32;
+            let y = term.side_index(Side::Top) as i32;
             let bar_width = term.width() as i32 - 20;
             let bar_x = term.width() as i32 - bar_width - 1;
             let hp_x = bar_x - hp_string.len() as i32 - 1;
 
-            let fmt = StringFormat::colors(Color::YELLOW, Color::BLACK);
-            term.put_string_formatted([hp_x, y], hp_string.as_str(), fmt);
+            let fg_color = Color::YELLOW;
+            term.put_string([hp_x, y], hp_string.as_str().fg(fg_color));
 
-            term.draw_horizontal_bar_color([bar_x, y], bar_width, hp.0, max.0, Color::RED, Color::rgb(0.05, 0.05, 0.05));
+            let bar = UiProgressBar::new(hp.0, max.0).color_fill(
+                ColorFill::EmptyOrFilled(Color::rgb(0.05, 0.05, 0.05),Color::RED));
+            term.draw_progress_bar([bar_x, y], bar_width as usize, &bar)
+            //term.draw_horizontal_bar_color([bar_x, y], bar_width, hp.0, max.0, Color::RED, Color::rgb(0.05, 0.05, 0.05));
         }
         
 

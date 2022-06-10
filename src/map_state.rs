@@ -40,7 +40,7 @@ impl PathingMap<IVec2> for MapObstacles {
         for dir in ADJACENT_8_WAY {
             let next = xy + dir;
 
-            if !self.0.is_in_bounds(next.into()) {
+            if !self.0.in_bounds(next.into()) {
                 continue;
             }
 
@@ -77,11 +77,11 @@ fn update_map_state_system(
 
     if let Ok(map) = q_map.get_single() {
         if blockers.0.len() != map.0.len() {
-            blockers.0 = Grid::default(map.0.size().into());
+            blockers.0 = Grid::default(map.0.size())
         }
 
         if entities.0.len() != map.0.len() {
-            entities.0 = Grid::default(map.0.size().into());
+            entities.0 = Grid::default(map.0.size());
         }
 
         for (i, tile) in map.0.iter().enumerate() {
@@ -93,7 +93,7 @@ fn update_map_state_system(
             *entry = None;
         }
         for (entity, pos) in q_blockers.iter() {
-            let i = map.0.pos_to_index(pos.0.into());
+            let i = map.0.pos_to_index(pos.0);
             blockers.0[i] = true;
             entities.0[i] = Some(entity);
         }
