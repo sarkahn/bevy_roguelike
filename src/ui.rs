@@ -1,8 +1,8 @@
 use bevy::prelude::*;
 use bevy_ascii_terminal::{*, ui::*};
+use interpolation::Lerp;
 
 use crate::{UI_SIZE, VIEWPORT_SIZE, events::AttackEvent, combat::{HitPoints, MaxHitPoints}, player::Player};
-use bevy_easings::Lerp;
 
 pub struct UiPlugin;
 

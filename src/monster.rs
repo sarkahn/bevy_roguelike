@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use bracket_random::prelude::{DiceType};
-use sark_pathfinding::AStar;
+use sark_pathfinding::*;
 
 use crate::{
     bundle::MovingEntityBundle, map_state::{
@@ -121,7 +121,7 @@ fn monster_ai(
                 obstacles.0[player_pos] = false;
 
                 let mut astar = AStar::new(5);
-                if let Some(path) = astar.find_path(&*obstacles, *pos, player_pos) {
+                if let Some(path) = astar.find_path(&obstacles.0, *pos, player_pos) {
                     if path.len() == 2 {
                         let damage = rng.roll(dice.0);
                         attack_events.send(TargetEvent {

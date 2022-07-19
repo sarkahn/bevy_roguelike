@@ -6,7 +6,7 @@ use crate::{
     movement::Position,
 };
 
-use adam_fov_rs::{self, fov};
+use adam_fov_rs::{self, fov, GridPoint};
 
 pub const VIEW_SYSTEM_LABEL: &str = "VIEW_SYSTEM";
 
@@ -35,18 +35,18 @@ pub struct VisibilityMap<'a> {
 }
 
 impl<'a> adam_fov_rs::VisibilityMap for VisibilityMap<'a> {
-    fn is_opaque(&self, p: IVec2) -> bool {
+    fn is_opaque(&self, p: impl GridPoint) -> bool {
         if !self.map.0.in_bounds(p) {
             return true;
         }
         self.map.0[p] == MapTile::Wall
     }
 
-    fn is_in_bounds(&self, p: IVec2) -> bool {
+    fn is_in_bounds(&self, p: impl GridPoint) -> bool {
         self.map.0.in_bounds(p)
     }
 
-    fn set_visible(&mut self, p: IVec2) {
+    fn set_visible(&mut self, p: impl GridPoint) {
         let i = self.map.0.pos_to_index(p);
 
         self.view.0[i] = true;
@@ -56,7 +56,7 @@ impl<'a> adam_fov_rs::VisibilityMap for VisibilityMap<'a> {
         }
     }
 
-    fn dist(&self, a: IVec2, b: IVec2) -> f32 {
+    fn dist(&self, a: impl GridPoint, b: impl GridPoint) -> f32 {
         a.as_vec2().distance(b.as_vec2())
     }
 }
@@ -88,7 +88,7 @@ fn view_system(
                 memory: None,
             };
 
-            fov::compute(pos.0.into(), range.0 as i32, &mut fov_map);
+            fov::compute(pos.0, range.0 as i32, &mut fov_map);
         }
     }
 }
@@ -123,7 +123,7 @@ fn view_memory_system(
                 memory: Some(&mut memory),
             };
 
-            fov::compute(pos.0.into(), range.0 as i32, &mut fov_map);
+            fov::compute(pos.0, range.0 as i32, &mut fov_map);
         }
     }
 }

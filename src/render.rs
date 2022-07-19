@@ -54,7 +54,7 @@ fn render(
     };
 
     if term.size() != map.0.size() {
-        term.resize(map.0.size().into());
+        term.resize(map.0.size());
     }
 
     term.clear();

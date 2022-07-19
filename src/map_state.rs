@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use sark_grids::Grid;
-use sark_pathfinding::{PathingMap, pathing_map::{ArrayVec, ADJACENT_8_WAY}, pathing_map::IntoIter};
+use sark_pathfinding::*;
 
 use crate::{
     map::{Map, MapTile}, movement::Position,
@@ -26,40 +26,17 @@ impl Plugin for MapStatePlugin {
 pub struct PathBlocker;
 
 #[derive(Component, Default)]
-pub struct MapObstacles(pub Grid<bool>);
-#[derive(Component, Default)]
-pub struct MapActors(pub Grid<Option<Entity>>);
+pub struct MapObstacles(pub PathMap2d);
+impl std::ops::Deref for MapObstacles {
+    type Target = PathMap2d;
 
-impl PathingMap<IVec2> for MapObstacles {
-    type Neighbours = IntoIter<IVec2,8>;
-
-    fn get_available_exits(&self, p: IVec2) -> Self::Neighbours {
-        let mut v = ArrayVec::<_, 8>::new();
-        let xy = IVec2::from(p);
-
-        for dir in ADJACENT_8_WAY {
-            let next = xy + dir;
-
-            if !self.0.in_bounds(next.into()) {
-                continue;
-            }
-
-            if !self.0[next] {
-                v.push(next.into());
-            }
-        }
-        v.into_iter()
-    }
-
-    fn get_cost(&self, _a: IVec2, _b: IVec2) -> usize {
-        1
-    }
-
-    fn get_distance(&self, a: IVec2, b: IVec2) -> usize {
-        // Manhattan distance
-        ((a.x - b.x).abs() + (a.y- b.y).abs()) as usize
+    fn deref(&self) -> &Self::Target {
+        &self.0
     }
 }
+
+#[derive(Component, Default)]
+pub struct MapActors(pub Grid<Option<Entity>>);
 
 fn update_map_state_system(
     q_moved_actors: Query<&Position, (With<PathBlocker>, Changed<Position>)>,

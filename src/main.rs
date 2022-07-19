@@ -1,7 +1,6 @@
 use bevy::{prelude::*};
 
-use bevy_ascii_terminal::TerminalBundle;
-use bevy_tiled_camera::{TiledCameraBundle, TiledCameraPlugin};
+use bevy_ascii_terminal::{TerminalBundle, TiledCameraBundle};
 
 mod bundle;
 mod config;
@@ -15,14 +14,10 @@ mod shapes;
 mod visibility;
 mod ui;
 mod events;
-mod web_resize;
+//mod web_resize;
 mod turn_system;
 mod combat;
 mod rng;
-
-
-
-
 
 #[derive(Component)]
 pub struct GameTerminal;
@@ -54,14 +49,13 @@ fn setup(mut commands: Commands) {
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        .add_plugin(TiledCameraPlugin)
         .add_plugin(player::PlayerPlugin)
         .add_plugin(map::MapGenPlugin)
         .add_plugin(render::RenderPlugin)
         .add_plugin(events::EventsPlugin)
         .add_plugin(visibility::VisiblityPlugin)
         .add_plugin(map_state::MapStatePlugin)
-        .add_plugin(web_resize::FullViewportPlugin)
+        //.add_plugin(web_resize::FullViewportPlugin)
         .add_plugin(turn_system::TurnSystemPlugin)
         .add_plugin(monster::MonstersPlugin)
         .add_plugin(combat::CombatPlugin)
