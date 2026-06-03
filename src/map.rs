@@ -1,229 +1,169 @@
+use std::ops::Range;
+
 use bevy::{
     math::{IVec2},
     prelude::*,
-    utils::HashSet,
 };
-use bevy_ascii_terminal::Side;
-use rand::{prelude::{StdRng, ThreadRng}, Rng, SeedableRng};
-use sark_grids::Grid;
+use rand::RngExt;
+use anyhow::Result;
 
-use crate::{config::{MapGenSettings}, monster::MonsterBundle, player::{Player}, shapes::Rect, GAME_SIZE, movement::Position};
+use crate::{GAME_SIZE, random_point, xy_to_index};
 
-pub struct MapGenPlugin;
 
-pub const MAP_GEN_SETUP_LABEL: &str = "MAP_GEN_SETUP";
+pub struct MapGenSettings {
+    seed: u64,
+    iterations: u32,
+    map_size: UVec2,
+    room_size: Range<u32>,
+    monsters_per_room: Range<u32>,
+    items_per_room: Range<u32>,
+}
 
-impl Plugin for MapGenPlugin {
-    fn build(&self, app: &mut App) {
-        app.add_startup_system(setup
-            //.after(PLAYER_SETUP_LABEL)
-            .label(MAP_GEN_SETUP_LABEL)
-        );
+impl Default for MapGenSettings {
+    fn default() -> Self {
+        Self { 
+            seed: Default::default(), 
+            iterations: 15, 
+            map_size: GAME_SIZE, 
+            room_size: 3..15, 
+            monsters_per_room: 0..4, 
+            items_per_room: 0..2, 
+        }
     }
 }
 
-fn setup(
-    mut commands: Commands,
-    q_player: Query<(Entity,&Player)>,
-) {
-  // Gen map
-    // let mut settings = match config::try_get_map_settings() {
-    //     Ok(settings) => settings,
-    //     Err(e) => panic!("{}", e),
-    // };
-
-    let mut settings = MapGenSettings::default();
-    settings.map_size = GAME_SIZE;
-
-    //settings.map_size;
-
-    //let rng = StdRng::seed_from_u64(settings.seed);
-    let rng = StdRng::from_rng(ThreadRng::default()).unwrap();
-
-    let player = q_player.get_single().map_or_else(|_|None,|(e,_)|Some(e));
-    let entities = MapGenEntities {
-        player,
-    };
-
-    MapGenerator::build(&mut commands, settings, rng, entities);
-}
 
 /// A tile on the [Map].
-#[derive(Eq, PartialEq, Clone, Copy)]
+#[derive(Eq, PartialEq, Clone, Copy, Default)]
 pub enum MapTile {
+    #[default]
     Wall,
     Floor,
 }
 
-impl Default for MapTile {
-    fn default() -> Self {
-        Self::Wall
-    }
-}
-
 #[derive(Component)]
-pub struct Map(pub Grid<MapTile>);
+pub struct Map(pub Vec<MapTile>);
 
-pub struct MapGenEntities {
-    pub player: Option<Entity>,
-    //pub monsters: Vec<MonsterBundle>,
-}
-
-pub struct MapGenerator {
+pub struct MapData {
     pub map: Map,
-    pub rooms: Vec<Rect>,
+    pub rooms: Vec<IRect>,
+    pub entities: Vec<(IVec2, char)>,
 }
 
-impl MapGenerator {
-    pub fn build(
-        commands: &mut Commands,
-        settings: MapGenSettings,
-        mut rng: StdRng,
-        entities: MapGenEntities,
-    ) {
-        let mut map = Map(Grid::default(settings.map_size));
-        let mut rooms: Vec<Rect> = Vec::with_capacity(50);
+pub fn build(settings: &MapGenSettings) -> Result<MapData> {
+    let mut map = MapData {
+        map: Map(Vec::with_capacity(GAME_SIZE.element_product() as usize)),
+        rooms: Vec::new(),
+        entities: Vec::new(),
+    };
 
-        generate_rooms(&mut map, &settings, &mut rng, &mut rooms);
+    generate_rooms(&mut map, settings);
+    place_player(&mut map);
 
-        let map = MapGenerator { map, rooms };
+    Ok(map)
 
-        if let Some(player) = entities.player {
-            map.place_player(commands, player);
-        } else {
-            println!("No player found");
-        }
-
-        let mut placed: HashSet<IVec2> = HashSet::default();
-
-        map.place_monsters(commands, &settings, &mut rng, &mut placed);
-
-        commands.spawn().insert(map.map);
-    }
-
-    pub fn place_player(&self, commands: &mut Commands, player: Entity) {
-        let p = self.rooms[0].center();
-
-        // Set the player's position
-        commands.entity(player).insert(Position::from(p));
-        println!("Setting player position to {}", p);
-    }
-
-    pub fn place_monsters(
-        &self,
-        commands: &mut Commands,
-        settings: &MapGenSettings,
-        rng: &mut StdRng,
-        placed: &mut HashSet<IVec2>,
-    ) {
-        // The first room is the player's room
-        for room in self.rooms.iter().skip(1) {
-            let count = rng.gen_range(settings.monsters_per_room.clone());
-
-            for _ in 0..=count {
-                for _ in 0..2 {
-                    // If the first try fails, try again
-                    let p = get_random_ivec(rng, room.min, room.max);
-
-                    if placed.contains(&p) {
-                        continue;
-                    }
-
-                    let monster_index = rng.gen_range(0..MonsterBundle::max_index());
-                    let mut monster = MonsterBundle::get_from_index(monster_index);
-                    monster.movable.position = p.into();
-                    placed.insert(p);
-
-                    commands.spawn_bundle(monster);
-
-                    break;
-                }
-            }
-        }
-    }
-}
-
-fn get_random_ivec(rng: &mut StdRng, min: IVec2, max: IVec2) -> IVec2 {
-    let p_x = rng.gen_range(min.x..max.x);
-    let p_y = rng.gen_range(min.y..max.y);
-
-    IVec2::new(p_x, p_y)
+    
 }
 
 fn generate_rooms(
-    map: &mut Map,
+    map: &mut MapData,
     settings: &MapGenSettings,
-    rng: &mut StdRng,
-    rooms: &mut Vec<Rect>,
 ) {
+    let mut rng = rand::rng();
     for _ in 0..settings.iterations {
-        let w = rng.gen_range(settings.room_size.clone());
-        let h = rng.gen_range(settings.room_size.clone());
+        let w = rng.random_range(settings.room_size.clone());
+        let h = rng.random_range(settings.room_size.clone());
 
-        let x = rng.gen_range(2..map.0.side_index(Side::Right) as u32 - w - 1);
-        let y = rng.gen_range(2..map.0.side_index(Side::Top) as u32 - h - 1);
+        let p = random_point();
 
-        let new_room = Rect::from_position_size((x as i32, y as i32), (w as i32, h as i32));
+        let tr = p + IVec2::new(w as i32 - 1, h as i32 - 1);
+        let new_room = IRect::from_corners(p, tr);
 
-        // //println!("Creating room {}", new_room);
-
-        let mut ok = true;
-
-        for room in rooms.iter() {
-            if new_room.overlaps(room) {
-                //println!("New room overlaps {}!", room);
-                ok = false;
-                break;
-            }
-        }
-
-        if ok {
+        if !map.rooms.iter().any(|r| overlaps(*r, new_room)) {
             //println!("Building new room!");
-            build_room(map, &new_room);
+            place_room(&mut map.map, &new_room);
 
-            if !rooms.is_empty() {
-                let prev_room = &rooms[rooms.len() - 1];
-                build_tunnels_between_rooms(map, rng, prev_room, &new_room);
+            if !map.rooms.is_empty() {
+                let prev_room = &map.rooms[map.rooms.len() - 1];
+                place_tunnels_between_rooms(&mut map.map, prev_room, &new_room);
             }
 
-            rooms.push(new_room);
+            map.rooms.push(new_room);
         }
     }
 }
 
-fn build_room(map: &mut Map, room: &Rect) {
-    for pos in room.iter() {
-        map.0[pos] = MapTile::Floor;
+fn place_room(map: &mut Map, room: &IRect) {
+    for p in iter_room_points(*room) {
+        let i = xy_to_index(p);
+        map.0[i] = MapTile::Floor;
     }
 }
 
-fn build_tunnels_between_rooms(map: &mut Map, rng: &mut StdRng, room_a: &Rect, room_b: &Rect) {
+fn place_tunnels_between_rooms(map: &mut Map, room_a: &IRect, room_b: &IRect) {
     let (new_x, new_y) = room_b.center().into();
     let (prev_x, prev_y) = room_a.center().into();
-
-    if rng.gen_bool(0.5) {
-        build_horizontal_tunnel(map, prev_x, new_x, prev_y);
-        build_vertical_tunnel(map, prev_y, new_y, new_x);
+    if rand::random_bool(0.5) {
+        place_hor_tunnel(map, prev_x, new_x, prev_y);
+        place_ver_tunnel(map, prev_y, new_y, new_x);
     } else {
-        build_vertical_tunnel(map, prev_y, new_y, prev_x);
-        build_horizontal_tunnel(map, prev_x, new_x, new_y);
+        place_ver_tunnel(map, prev_y, new_y, prev_x);
+        place_hor_tunnel(map, prev_x, new_x, new_y);
     }
 }
 
-fn build_horizontal_tunnel(map: &mut Map, x1: i32, x2: i32, y: i32) {
+fn place_hor_tunnel(map: &mut Map, x1: i32, x2: i32, y: i32) {
     let min = x1.min(x2);
     let max = x1.max(x2);
 
     for x in min..=max {
-        map.0[ [x as u32, y as u32] ] = MapTile::Floor;
+        let i = xy_to_index([x, y]);
+        map.0[i] = MapTile::Floor;
     }
 }
 
-fn build_vertical_tunnel(map: &mut Map, y1: i32, y2: i32, x: i32) {
+fn place_ver_tunnel(map: &mut Map, y1: i32, y2: i32, x: i32) {
     let min = y1.min(y2);
     let max = y1.max(y2);
 
     for y in min..=max {
-        map.0[ [x as u32, y as u32] ] = MapTile::Floor;
+        let i = xy_to_index([x,y]);
+        map.0[i] = MapTile::Floor;
     }
+}
+
+fn place_player(map: &mut MapData,) {
+    let r = map.rooms.first().expect("Attempting to place player but there's no rooms");
+    let p = random_rect_point(*r);
+    map.entities.push((p, '@'));
+}
+
+fn place_monsters(settings: &MapGenSettings, map: &mut MapData) {
+    // The player starts in the first room
+    for r in map.rooms.iter().skip(1) {
+        for _ in 0..rand::random_range(settings.monsters_per_room.clone()) as i32 {
+            let mut p = random_rect_point(*r);
+            while map.entities.iter().map(|v|v.0).any(|p2| p == p2) {
+                p = random_rect_point(*r);
+            }
+            let monster = if rand::random_bool(0.5) {'g'} else {'o'};
+            map.entities.push((p, monster));
+        }
+    }
+}
+
+fn random_rect_point(r: IRect) -> IVec2 {
+    let x = rand::random_range(r.min.x..=r.max.x);
+    let y = rand::random_range(r.min.y..=r.max.y);
+    IVec2::new(x,y)
+}
+
+fn overlaps(l: IRect, r: IRect) -> bool {
+    l.contains(r.min) || l.contains(r.max)
+}
+
+fn iter_room_points(r: IRect) -> impl Iterator<Item=IVec2> {
+    (r.min.y..=r.max.y).flat_map(move |y| {
+        (r.min.x..=r.max.x).map(move |x| IVec2::new(x,y))
+    })
 }
