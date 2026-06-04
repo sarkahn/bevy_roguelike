@@ -17,6 +17,9 @@ features = ["std", "bevy_render", "bevy_winit", "x11", "bevy_scene"]
 git = "https://github.com/sarkahn/bevy_ascii_terminal"
 rev = "071725307e0b1a93e87f499f26d532fa27717834"
 
+[dependencies.adam_fov_rs]
+git = "https://github.com/sarkahn/adam_fov_rs"
+rev = "8cfdd64c1708a9d2574e7a9a66bf708024b952d7"
 
 # [dependencies.bevy]
 # path = "../bevy", version = "0.8.0-dev", default-features = false, features = ["png", "bevy_winit", "bevy_render"]}

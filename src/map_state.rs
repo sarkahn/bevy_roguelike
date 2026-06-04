@@ -1,23 +1,18 @@
 use bevy::prelude::*;
-use sark_grids::Grid;
-use sark_pathfinding::*;
 
 use crate::{
-    map::{Map, MapTile}, movement::Position,
+    components::Position, map::{Map, MapTile}, xy_to_index
 };
 
-pub const UPDATE_MAP_STATE_SYSTEM_LABEL: &str = "update_map_state_system";
 
 pub struct MapStatePlugin;
 
 impl Plugin for MapStatePlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(
-            update_map_state_system
-                .label(UPDATE_MAP_STATE_SYSTEM_LABEL)
-        )
+        app
         .init_resource::<MapObstacles>()
-        .init_resource::<MapActors>();
+        .init_resource::<MapActors>()
+        .add_systems(PreUpdate, update_map_state_system);
     }
 }
 
@@ -25,18 +20,11 @@ impl Plugin for MapStatePlugin {
 #[derive(Component, Default)]
 pub struct PathBlocker;
 
-#[derive(Component, Default)]
-pub struct MapObstacles(pub PathMap2d);
-impl std::ops::Deref for MapObstacles {
-    type Target = PathMap2d;
+#[derive(Resource, Default, Clone, Debug)]
+pub struct MapObstacles(pub Vec<bool>);
 
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-#[derive(Component, Default)]
-pub struct MapActors(pub Grid<Option<Entity>>);
+#[derive(Resource, Default, Clone, Debug)]
+pub struct MapActors(pub Vec<Option<Entity>>);
 
 fn update_map_state_system(
     q_moved_actors: Query<&Position, (With<PathBlocker>, Changed<Position>)>,
@@ -52,25 +40,24 @@ fn update_map_state_system(
         return;
     }
 
-    if let Ok(map) = q_map.get_single() {
+    if let Ok(map) = q_map.single() {
         if blockers.0.len() != map.0.len() {
-            blockers.0 = Grid::default(map.0.size())
+            blockers.0 = vec![false; map.0.len()]
         }
 
         if entities.0.len() != map.0.len() {
-            entities.0 = Grid::default(map.0.size());
+            entities.0 = vec![None; map.0.len()];
         }
 
-        for (i, tile) in map.0.iter().enumerate() {
-            blockers.0[i] = *tile == MapTile::Wall;
+        // Populate blockers from map tiles first
+        for (i, t) in map.0.iter().enumerate() {
+            blockers.0[i] = matches!(t, MapTile::Wall);
         }
+        entities.0.fill(None);
 
-        // Clear entity state
-        for entry in entities.0.iter_mut() { 
-            *entry = None;
-        }
+
         for (entity, pos) in q_blockers.iter() {
-            let i = map.0.pos_to_index(pos.0);
+            let i = xy_to_index(pos.0);
             blockers.0[i] = true;
             entities.0[i] = Some(entity);
         }

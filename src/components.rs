@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy_ascii_terminal::color::css;
 
 #[derive(Component, Clone, Default)]
 pub struct HitPoints {
@@ -24,41 +25,38 @@ pub struct AttackDice {
     pub faces: i32,
 }
 
-/// Component for tracking entity positions on the map.
+impl AttackDice {
+    pub fn roll(&self) -> i32 {
+        let mut i: i32 = 0;
+        for _ in 0..self.dice {
+            i += rand::random_range(0..self.faces);
+        }
+        i
+    }
+}
 
+/// Component for tracking entity positions on the map.
 #[derive(Component, Clone, Default)]
 pub struct Position(pub IVec2);
 
 /// Component for tracking entity movement.
-
 #[derive(Component, Clone, Default)]
 pub struct Movement(pub IVec2);
-
-/// When an actor's energy reaches or exceeds 100, it will be given a turn.
-#[derive(Default, Debug, Component, Clone)]
-pub struct Energy(pub i32);
-
-/// Determines how frequently an actor gets to take their turn,
-/// relative to other actors.
-#[derive(Debug, Component, Clone, Default)]
-pub struct Speed(pub i32);
-
-/// A tag for actors that can perform actions and take turns.
-#[derive(Default, Debug, Component, Clone)]
-pub struct Actor;
-
-/// A tag for actors that can perform actions and take turns.
-#[derive(Default, Debug, Component, Clone)]
-pub struct Player;
 
 #[derive(Default, Debug, Component, Clone)]
 pub struct Monster;
 
-#[derive(Default, Debug, Component, Clone,)]
+#[derive(Debug, Component, Clone,)]
 pub struct Renderable {
-    pub fg_color: Color,
-    pub bg_color: Color,
+    pub fg_color: LinearRgba,
+    pub bg_color: LinearRgba,
     pub glyph: char,
+}
+
+impl Default for Renderable {
+    fn default() -> Self {
+        Self { fg_color: css::WHITE, bg_color: css::BLACK, glyph: ' ' }
+    }
 }
 
 #[derive(Component, Debug, Default, Clone)]

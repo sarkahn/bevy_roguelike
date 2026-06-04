@@ -7,7 +7,7 @@ use bevy::{
 use rand::RngExt;
 use anyhow::Result;
 
-use crate::{GAME_SIZE, random_point, xy_to_index};
+use crate::{GAME_SIZE, xy_to_index};
 
 
 pub struct MapGenSettings {
@@ -51,8 +51,9 @@ pub struct MapData {
 }
 
 pub fn build(settings: &MapGenSettings) -> Result<MapData> {
+    let tile_count = GAME_SIZE.element_product() as usize;
     let mut map = MapData {
-        map: Map(Vec::with_capacity(GAME_SIZE.element_product() as usize)),
+        map: Map(vec![MapTile::Wall; tile_count]),
         rooms: Vec::new(),
         entities: Vec::new(),
     };
@@ -60,9 +61,7 @@ pub fn build(settings: &MapGenSettings) -> Result<MapData> {
     generate_rooms(&mut map, settings);
     place_player(&mut map);
 
-    Ok(map)
-
-    
+    Ok(map)    
 }
 
 fn generate_rooms(
@@ -74,7 +73,10 @@ fn generate_rooms(
         let w = rng.random_range(settings.room_size.clone());
         let h = rng.random_range(settings.room_size.clone());
 
-        let p = random_point();
+        let p = IVec2::new(
+            rand::random_range(1..GAME_SIZE.x - w - 2) as i32,
+            rand::random_range(1..GAME_SIZE.y - h - 2) as i32,
+        );
 
         let tr = p + IVec2::new(w as i32 - 1, h as i32 - 1);
         let new_room = IRect::from_corners(p, tr);

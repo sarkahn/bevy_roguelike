@@ -73,6 +73,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "adam_fov_rs"
+version = "0.4.0"
+source = "git+https://github.com/sarkahn/adam_fov_rs?rev=8cfdd64c1708a9d2574e7a9a66bf708024b952d7#8cfdd64c1708a9d2574e7a9a66bf708024b952d7"
+dependencies = [
+ "glam",
+]
+
+[[package]]
 name = "adler2"
 version = "2.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1004,6 +1012,7 @@ dependencies = [
 name = "bevy_roguelike"
 version = "0.5.0"
 dependencies = [
+ "adam_fov_rs",
  "anyhow",
  "bevy",
  "bevy_ascii_terminal",
