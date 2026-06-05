@@ -5,30 +5,20 @@ use map::Map;
 
 use crate::{map::MapGenSettings, turn_system::Actor};
 
+mod combat;
 mod components;
 mod entities;
 mod map;
 mod map_state;
 mod monster;
+mod player;
 mod render;
 mod turn_system;
-// mod movement;
-mod player;
-// mod render;
-// mod shapes;
+mod ui;
 mod visibility;
-// mod ui;
-// mod events;
-// //mod web_resize;
-// mod turn_system;
-// mod combat;
-// mod rng;
 
 #[derive(Component)]
 pub struct GameTerminal;
-
-#[derive(Component)]
-pub struct UiTerminal;
 
 #[derive(Message)]
 pub struct Reset;
@@ -62,13 +52,6 @@ fn setup(mut commands: Commands) {
         Terminal::new(GAME_SIZE).with_string([0, 0], "Hello"),
         GameTerminal,
         TerminalMeshPivot::LeftBottom,
-    ));
-    commands.spawn((
-        Terminal::new(UI_SIZE)
-            .with_border(BoxStyle::SINGLE_LINE)
-            .with_string([0, 0], "HELLO UI"),
-        UiTerminal,
-        TerminalMeshPivot::LeftTop,
     ));
 
     commands.spawn(TerminalCamera::new());
@@ -120,7 +103,9 @@ fn main() {
         .add_plugins((DefaultPlugins, TerminalPlugins))
         .insert_resource(ClearColor(Color::BLACK))
         .add_message::<Reset>()
+        .add_plugins(ui::UiPlugin)
         .add_plugins(visibility::VisiblityPlugin)
+        .add_plugins(combat::CombatPlugin)
         .add_plugins(turn_system::TurnSystemPlugin)
         .add_plugins(map_state::MapStatePlugin)
         .add_plugins(player::PlayerPlugin)
@@ -129,11 +114,5 @@ fn main() {
         .add_systems(First, reset.run_if(on_message::<Reset>))
         .add_systems(Update, debuggo)
         .add_systems(Startup, setup)
-        // .add_plugin(map::MapGenPlugin)
-        // .add_plugin(events::EventsPlugin)
-        // //.add_plugin(web_resize::FullViewportPlugin)
-        // .add_plugin(combat::CombatPlugin)
-        // .add_plugin(ui::UiPlugin)
-        // .add_startup_system(setup)
         .run();
 }

@@ -2,10 +2,13 @@ use bevy::prelude::*;
 use sark_pathfinding::Pathfinder;
 
 use crate::{
-    components::{AttackDice, MapView, Monster, Position},
+    combat::{AttackDice, AttackEvent},
+    components::Position,
     map_state::{MapActors, PathingData},
     player::Player,
     turn_system::{Energy, TakingATurn},
+    ui::LogMessage,
+    visibility::MapView,
     xy_to_index,
 };
 
@@ -16,6 +19,9 @@ impl Plugin for MonstersPlugin {
         app.add_systems(Update, monster_ai);
     }
 }
+
+#[derive(Default, Debug, Component, Clone)]
+pub struct Monster;
 
 fn monster_ai(
     mut commands: Commands,
@@ -37,7 +43,7 @@ fn monster_ai(
     // mut rng: Local<DiceRng>,
     mut finder: Local<Pathfinder>,
 ) {
-    for (entity, mut pos, mut energy, dice, view, _name) in q_monster.iter_mut() {
+    for (entity, mut pos, mut energy, dice, view, name) in q_monster.iter_mut() {
         let mut posi = xy_to_index(pos.0);
 
         if let Ok((player, player_pos)) = q_player.single() {
@@ -61,6 +67,11 @@ fn monster_ai(
                         //     target: player,
                         //     effect: ActorEffect::Damage(damage),
                         // });
+
+                        commands.trigger(AttackEvent {
+                            actor: entity,
+                            target: player,
+                        });
                     } else {
                         entities.0[posi] = None;
                         (*pos).0 = path[1];

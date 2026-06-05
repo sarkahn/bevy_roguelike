@@ -1,136 +1,129 @@
 use bevy::prelude::*;
-use bracket_random::prelude::DiceType;
 
-use crate::{ui::PrintLog, map_state::{MapObstacles, MapActors}, movement::Position};
-
-pub const RESOLVE_TARGET_EVENTS_SYSTEM_LABEL: &str = "resolve_target_events";
-pub const DEATH_SYSTEM_LABEL: &str = "death_system";
+use crate::{
+    components::Position,
+    //    ui::PrintLog,
+    map_state::{MapActors, PathBlocker, PathingData},
+    ui::LogMessage,
+    xy_to_index,
+};
 
 pub struct CombatPlugin;
 
 impl Plugin for CombatPlugin {
     fn build(&self, app: &mut App) {
-        app
-        .add_event::<TargetEvent>()
-        .add_event::<ActorKilledEvent>()
-        .add_system_to_stage(CoreStage::PostUpdate, resolve_target_events
-            .label(RESOLVE_TARGET_EVENTS_SYSTEM_LABEL))
-        .add_system_to_stage(CoreStage::PostUpdate, death_system
-            .after(RESOLVE_TARGET_EVENTS_SYSTEM_LABEL)
-            .label(DEATH_SYSTEM_LABEL));
+        app.add_observer(on_attack).add_observer(on_actor_killed);
     }
 }
 
-#[derive(Debug, Component)]
-pub struct MaxHitPoints(pub i32);
-
-#[derive(Debug, Component)]
-pub struct HitPoints(pub i32);
-
-#[derive(Default, Debug,Component)]
-pub struct Defense(pub i32);
-
-#[derive(Default, Debug, Component)]
-pub struct Strength(pub i32);
-
-#[derive(Default, Debug, Component)]
-pub struct AttackDice(pub DiceType);
-
-#[derive(Debug, Bundle)]
-pub struct CombatantBundle {
-    pub hp: HitPoints,
-    pub max_hp: MaxHitPoints,
-    pub defense: Defense,
-    pub strength: Strength,
-    pub attack_dice: AttackDice,
+#[derive(Component, Clone, Default)]
+pub struct HitPoints {
+    pub current: i32,
+    pub max: i32,
 }
 
-pub enum ActorEffect {
-    Heal(i32),
-    Damage(i32),
+#[derive(Component, Clone, Default)]
+pub struct Defense {
+    pub current: i32,
+    pub max: i32,
 }
 
-pub struct TargetEvent {
+#[derive(Component, Clone, Default)]
+pub struct Strength {
+    pub current: i32,
+    pub max: i32,
+}
+
+#[derive(Component, Clone, Default)]
+pub struct AttackDice {
+    pub dice: i32,
+    pub faces: i32,
+}
+
+impl AttackDice {
+    pub fn roll(&self) -> i32 {
+        let mut i: i32 = 0;
+        for _ in 0..self.dice {
+            i += rand::random_range(0..self.faces);
+        }
+        i
+    }
+}
+
+#[derive(Event)]
+pub struct AttackEvent {
     pub actor: Entity,
     pub target: Entity,
-    pub effect: ActorEffect,
 }
 
+#[derive(Event)]
 pub struct ActorKilledEvent {
-    name: String,
+    actor: Entity,
 }
 
-fn resolve_target_events(
-    q_names: Query<&Name>,
-    q_attack: Query<&mut Strength>,
-    mut q_defend: Query<(&mut HitPoints, &MaxHitPoints, &Defense)>,
-    mut log: ResMut<PrintLog>,
-    mut target_events: EventReader<TargetEvent>,
+fn on_attack(
+    e: On<AttackEvent>,
+    q_attacker: Query<(&Strength, &AttackDice)>,
+    mut q_target: Query<(&mut HitPoints, &Defense)>,
+    q_name: Query<&Name>,
+    mut commands: Commands,
 ) {
-    for ev in target_events.iter() {
-        let tar = ev.target;
-        let actor = ev.actor;
-        match ev.effect {
-            ActorEffect::Heal(amount) => {
-                if let Ok((mut hp, max, _)) = q_defend.get_mut(tar) {
-                    let amount = i32::min(amount, max.0 - hp.0);
-                    if amount <= 0 {
-                        continue;
-                    }
-                    hp.0 += amount;
-                                  
-                    // TODO: Move this into ui? No reason to handle it here, would make it simpler + cleaner
-                    if let Ok(actor_name) = q_names.get(actor) {
-                        if let Ok(target_name) = q_names.get(tar) {
-                            log.push(format!("{} heals {} for {} damage.", actor_name.as_str(), target_name.as_str(), amount));
-                        }
-                    }
-                }
-            },
-            ActorEffect::Damage(amount) => {
-                if let Ok(_attack) = q_attack.get(actor) {
-                    if let Ok((mut hp, _, def)) = q_defend.get_mut(tar) {
-                        let amount = amount - def.0;
+    let Ok((mut tar_hp, tar_def)) = q_target.get_mut(e.target) else {
+        // TODO: Proper error handling
+        panic!("Target even initiated with no target");
+    };
+    let Ok((attack, dice)) = q_attacker.get(e.actor) else {
+        // TODO: Proper error handling
+        panic!("Attack event initiated with no attacker");
+    };
 
-                        if amount <= 0 {
-                            continue;
-                        }
-                        hp.0 -= amount;
+    let damage = attack.current + dice.roll() - tar_def.current;
 
-                    // TODO: Move this into ui? No reason to handle it here, would make it simpler + cleaner
-                        if let Ok(actor_name) = q_names.get(actor) {
-                            if let Ok(target_name) = q_names.get(tar) {
+    if damage <= 0 {
+        if let Ok(actor_name) = q_name.get(e.actor)
+            && let Ok(target_name) = q_name.get(e.target)
+        {
+            commands.write_message(LogMessage(format!(
+                "{} tried to attack {} but did no damage.",
+                actor_name, target_name,
+            )));
+            return;
+        }
+    }
 
-                                log.push(format!("{} attacks {} for {} damage.", actor_name.as_str(), target_name.as_str(), amount));
-                            } 
-                        } 
-                    }
-                }
-            },
-        };
+    tar_hp.current = (tar_hp.current - damage).max(0);
+    if let Ok(actor_name) = q_name.get(e.actor)
+        && let Ok(target_name) = q_name.get(e.target)
+    {
+        commands.write_message(LogMessage(format!(
+            "{} attacks {} for <fg=red>{}</fg> damage.",
+            actor_name, target_name, damage
+        )));
+    }
+    if tar_hp.current == 0 {
+        commands.trigger(ActorKilledEvent { actor: e.target });
     }
 }
 
-fn death_system(
+fn on_actor_killed(
+    e: On<ActorKilledEvent>,
     mut commands: Commands,
-    mut log: ResMut<PrintLog>,
-    mut obstacles: ResMut<MapObstacles>,
-    mut blockers: ResMut<MapActors>,
-    q_combatants: Query<(Entity, &HitPoints, &Position, &Name)>,
-    mut evt_killed: EventWriter<ActorKilledEvent>,
+    mut pathing: ResMut<PathingData>,
+    mut actors: ResMut<MapActors>,
+    q_name: Query<&Name>,
+    q_pos: Query<&Position>,
+    q_blocker: Query<&PathBlocker>,
 ) {
-    for (entity, hp, pos, name) in q_combatants.iter() {
-        if hp.0 <= 0 {
-            commands.entity(entity).despawn();
-            let pos = IVec2::from(pos.0).as_uvec2();
-            obstacles.0[pos] = false;
-            blockers.0[pos] = None;
-            
-            evt_killed.send(ActorKilledEvent{
-                name: name.to_string()
-            });
-            // TODO: Move to UI
-            log.push(format!("{} was killed!", name.as_str()));
+    if let Ok(pos) = q_pos.get(e.actor) {
+        let i = xy_to_index(pos.0);
+        actors.0[i] = None;
+        if q_blocker.get(e.actor).is_ok() {
+            pathing.0.remove_obstacle(pos.0);
         }
-    } 
+    }
+
+    if let Ok(name) = q_name.get(e.actor) {
+        commands.write_message(LogMessage(format!("{} was killed!", name)));
+    }
+    commands.entity(e.actor).despawn();
 }

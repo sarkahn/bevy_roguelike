@@ -383,6 +383,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_ascii_terminal"
+version = "0.19.0-dev"
+source = "git+https://github.com/sarkahn/bevy_ascii_terminal?rev=7a84e16b7de88ee7e8afcfd709620590790461b8#7a84e16b7de88ee7e8afcfd709620590790461b8"
+dependencies = [
+ "anyhow",
+ "bevy",
+ "bevy_platform 0.18.1",
+ "byteorder",
+ "enum-ordinalize",
+ "flate2",
+ "thiserror 2.0.18",
+]
+
+[[package]]
 name = "bevy_asset"
 version = "0.19.0-rc.2"
 source = "git+https://github.com/bevyengine/bevy?rev=99d2e972d06a3a688aa1ebca6ce5759d784821c5#99d2e972d06a3a688aa1ebca6ce5759d784821c5"
@@ -1029,7 +1043,7 @@ dependencies = [
  "adam_fov_rs",
  "anyhow",
  "bevy",
- "bevy_ascii_terminal",
+ "bevy_ascii_terminal 0.19.0-dev (git+https://github.com/sarkahn/bevy_ascii_terminal?rev=7a84e16b7de88ee7e8afcfd709620590790461b8)",
  "rand",
  "sark_pathfinding",
 ]
@@ -3243,7 +3257,7 @@ dependencies = [
  "ahash",
  "arrayvec",
  "bevy",
- "bevy_ascii_terminal",
+ "bevy_ascii_terminal 0.19.0-dev (git+https://github.com/sarkahn/bevy_ascii_terminal?rev=071725307e0b1a93e87f499f26d532fa27717834)",
  "bit-vec",
  "glam",
 ]

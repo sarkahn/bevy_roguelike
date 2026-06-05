@@ -19,7 +19,7 @@ impl Plugin for MapStatePlugin {
 }
 
 /// An entity that blocks pathfinding.
-#[derive(Component, Default)]
+#[derive(Component, Default, Clone, Debug)]
 pub struct PathBlocker;
 
 #[derive(Resource, Default, Clone, Debug)]

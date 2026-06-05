@@ -1,5 +1,7 @@
 use bevy::prelude::*;
 
+use crate::combat::{AttackDice, Strength};
+use crate::monster::Monster;
 use crate::{components::*, xy_to_index};
 
 use crate::map_state::{MapActors, PathingData};
@@ -65,7 +67,6 @@ fn player_input(
             return;
         }
 
-        // //println!("Player moved, ending their turn");
         pos.0 = pos.0 + move_input;
         energy.0 = 0;
         actors.0[curri] = None;

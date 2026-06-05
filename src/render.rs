@@ -2,15 +2,31 @@ use bevy::prelude::*;
 use bevy_ascii_terminal::*;
 
 use crate::{
-    GAME_SIZE, GameTerminal, Reset, components::*, index_to_xy, map::{Map, MapTile}, player::Player, xy_to_index
-    // movement::Position,
-    // player::Player,
-    // visibility::{MapMemory, MapView}, GameTerminal, combat::ActorKilledEvent,
+    GAME_SIZE,
+    GameTerminal,
+    Reset,
+    components::{Position, Renderable},
+    index_to_xy,
+    map::{Map, MapTile},
+    player::Player,
+    visibility::{MapMemory, MapView},
+    xy_to_index, // movement::Position,
+                 // player::Player,
+                 // visibility::{MapMemory, MapView}, GameTerminal, combat::ActorKilledEvent,
 };
 
-pub const WALL_COLOR: LinearRgba = LinearRgba{ red:0.866, green:0.866, blue:0.882, alpha: 1.0};
-pub const FLOOR_COLOR: LinearRgba = LinearRgba{ red:0.602, green:0.462, blue:0.325, alpha: 1.0};
-
+pub const WALL_COLOR: LinearRgba = LinearRgba {
+    red: 0.866,
+    green: 0.866,
+    blue: 0.882,
+    alpha: 1.0,
+};
+pub const FLOOR_COLOR: LinearRgba = LinearRgba {
+    red: 0.602,
+    green: 0.462,
+    blue: 0.325,
+    alpha: 1.0,
+};
 
 /// Plugin managing game rendering systems
 pub struct RenderPlugin;
@@ -82,7 +98,7 @@ fn render_map_in_view(view: &MapView, map: &Map, term: &mut Terminal) {
         if *seen {
             // NOTE: Assumes map size = view size = GAME_SIZE constant
             let tile = map.0[i];
-            
+
             let p = index_to_xy(i);
             term.put_tile(p, Tile::from(tile));
         }
@@ -134,7 +150,7 @@ where
     render_all_entities(term, actors);
 }
 fn render_full_map(map: &Map, term: &mut Terminal) {
-    for i in 0..GAME_SIZE.element_product()  as usize{
+    for i in 0..GAME_SIZE.element_product() as usize {
         let t = match map.0[i] {
             MapTile::Wall => Tile {
                 glyph: '#',
@@ -169,7 +185,7 @@ fn should_render(
 ) -> bool {
     let entities_changed = !q_entities_changed.is_empty();
     let map_changed = !q_map_changed.is_empty();
-    let killed = false;//evt_killed.iter().next().is_some();
+    let killed = false; //evt_killed.iter().next().is_some();
     let reset = !reset.is_empty();
 
     map_changed || entities_changed || killed || reset
