@@ -41,7 +41,7 @@ fn handle_print(
 
     term.clear_inner();
 
-    for (y, text) in buffer.iter().enumerate().take(6) {
+    for (y, text) in buffer.iter().rev().enumerate().take(6) {
         let t = 1.0 - (y as f32 / 6.0);
 
         let alpha = LinearCurve.sample_clamped(t).clamp(0.15, 1.0);

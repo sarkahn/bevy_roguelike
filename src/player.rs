@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::combat::{AttackDice, Strength};
+use crate::combat::{AttackDice, AttackEvent, Strength};
 use crate::monster::Monster;
 use crate::{components::*, xy_to_index};
 
@@ -20,25 +20,16 @@ pub struct Player;
 
 fn player_input(
     mut q_player: Query<
-        (
-            Entity,
-            &Strength,
-            &mut Position,
-            &mut Energy,
-            &AttackDice,
-            &mut Movement,
-        ),
+        (Entity, &Strength, &mut Position, &mut Energy, &mut Movement),
         (With<Player>, With<TakingATurn>),
     >,
     q_monsters: Query<&Name, With<Monster>>,
     input: Res<ButtonInput<KeyCode>>,
     mut pathing: ResMut<PathingData>,
     mut actors: ResMut<MapActors>,
-    // _event_attack: MessageWriter<AttackEvent>,
-    // mut evt_attack: MessageWriter<TargetEvent>,
-    // mut rng: Local<DiceRng>,
+    mut commands: Commands,
 ) {
-    if let Ok((entity, _attack, mut pos, mut energy, dice, mut movement)) = q_player.single_mut() {
+    if let Ok((entity, _attack, mut pos, mut energy, mut movement)) = q_player.single_mut() {
         if read_wait(&input) {
             energy.0 = 0;
             return;
@@ -55,12 +46,10 @@ fn player_input(
         if pathing.0.obstacles.get_index(nexti) {
             if let Some(target) = actors.0[nexti] {
                 if let Ok(_name) = q_monsters.get(target) {
-                    // evt_attack.send( TargetEvent {
-                    //     actor: entity,
-                    //     target,
-                    //     effect: ActorEffect::Damage(attack),
-                    // });
-
+                    commands.trigger(AttackEvent {
+                        actor: entity,
+                        target,
+                    });
                     energy.0 = 0;
                 }
             }

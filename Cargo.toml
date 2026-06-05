@@ -24,7 +24,7 @@ rev = "8cfdd64c1708a9d2574e7a9a66bf708024b952d7"
 
 [dependencies.sark_pathfinding]
 git = "https://github.com/sarkahn/sark_pathfinding_rs"
-rev = "7306ac50615733d98b350f4b58ed2b063b799605"
+rev = "ca8bc9f93e06bf96630ac11bf8ed78d82329f2e2"
 
 # [dependencies.bevy]
 # path = "../bevy", version = "0.8.0-dev", default-features = false, features = ["png", "bevy_winit", "bevy_render"]}
