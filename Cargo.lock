@@ -1038,7 +1038,7 @@ dependencies = [
 
 [[package]]
 name = "bevy_roguelike"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "adam_fov_rs",
  "anyhow",

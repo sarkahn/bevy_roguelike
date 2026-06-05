@@ -5,10 +5,6 @@ use bevy_ascii_terminal::color::css;
 #[derive(Component, Clone, Default)]
 pub struct Position(pub IVec2);
 
-/// Component for tracking entity movement.
-#[derive(Component, Clone, Default)]
-pub struct Movement(pub IVec2);
-
 #[derive(Debug, Component, Clone)]
 pub struct Renderable {
     pub fg_color: LinearRgba,

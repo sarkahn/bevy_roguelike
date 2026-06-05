@@ -1,4 +1,4 @@
-use bevy::{ecs::error::info, prelude::*};
+use bevy::prelude::*;
 
 pub struct TurnSystemPlugin;
 
@@ -40,18 +40,13 @@ fn turn_begin_system(
 
     let mut actor_acting = false;
     while !actor_acting && !q_waiting_actors.is_empty() {
-        for (entity, mut energy, speed, name) in q_waiting_actors.iter_mut() {
+        for (entity, mut energy, speed, _name) in q_waiting_actors.iter_mut() {
             assert!(speed.0 > 0);
             energy.0 += speed.0;
 
             if energy.0 >= 100 {
                 actor_acting = true;
                 commands.entity(entity).insert(TakingATurn);
-                // if let Some(name) = name {
-                //     info!("{} is taking a turn", name);
-                // } else {
-                //     warn!("Entity starting a turn, but they have no name");
-                // }
             }
         }
     }
@@ -61,7 +56,7 @@ fn turn_end_system(
     mut commands: Commands,
     q_actors: Query<(Entity, &Energy, Option<&Name>), (With<Actor>, With<TakingATurn>)>,
 ) {
-    for (entity, energy, name) in q_actors.iter() {
+    for (entity, energy, _name) in q_actors.iter() {
         if energy.0 < 100 {
             commands.entity(entity).remove::<TakingATurn>();
             // if let Some(name) = name {

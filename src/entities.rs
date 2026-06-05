@@ -1,11 +1,11 @@
 use crate::{
-    combat::{AttackDice, Defense, HitPoints, Strength},
-    components::{Movement, Position, Renderable},
+    combat::{Defense, Dice, HitPoints, Strength},
+    components::{Position, Renderable},
     map_state::PathBlocker,
     monster::Monster,
     player::Player,
     turn_system::{Actor, Energy, Speed},
-    visibility::{MapView, ViewRange},
+    visibility::{MapMemory, MapView, ViewRange},
 };
 use bevy::prelude::*;
 use bevy_ascii_terminal::color::*;
@@ -14,7 +14,6 @@ pub fn movable_guy() -> impl Scene {
     bsn! {
         Renderable
         Position
-        Movement
         Energy
         Speed
         Actor
@@ -47,7 +46,7 @@ pub fn goblin(pos: IVec2) -> impl Scene {
         Renderable { glyph: 'g', fg_color: css::RED }
         HitPoints { current: 15, max: 15 }
         Strength { current: 1, max: 1 }
-        AttackDice { dice: 1, faces: 4 }
+        Dice { dice: 1, faces: 4 }
         Position(pos)
         Speed(20)
     }
@@ -61,7 +60,7 @@ pub fn orc(pos: IVec2) -> impl Scene {
         HitPoints { current: 25, max: 25 }
         Defense { current: 1, max: 1 }
         Strength { current: 3, max: 3 }
-        AttackDice { dice: 2, faces: 6 }
+        Dice { dice: 2, faces: 6 }
         Speed(15)
         Position(pos)
     }
@@ -75,13 +74,13 @@ pub fn player(pos: IVec2) -> impl Scene {
         movable_guy()
         Renderable { glyph: '@', fg_color: css::WHITE }
         HitPoints { current: 60, max: 60 }
-        AttackDice { dice: 5, faces: 3 }
-        ViewRange(5)
+        Dice { dice: 5, faces: 3 }
         Defense { current: 1, max: 1 }
         Strength { current: 3, max: 3 }
         Speed(25)
-        //MapView
-        //MapMemory
+        ViewRange(5)
+        MapView
+        MapMemory
         Position(pos)
     }
 }

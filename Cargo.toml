@@ -1,6 +1,6 @@
 [package]
 name = "bevy_roguelike"
-version = "0.5.0"
+version = "0.6.0"
 edition = "2024"
 
 [dependencies]
@@ -11,7 +11,7 @@ rand = "0.10.1"
 git = "https://github.com/bevyengine/bevy"
 rev = "99d2e972d06a3a688aa1ebca6ce5759d784821c5"
 default-features = false
-features = ["std", "bevy_render", "bevy_winit", "x11", "bevy_scene", "bevy_log"]
+features = ["std", "bevy_render", "bevy_winit", "x11", "bevy_scene", "bevy_log", "bevy_state"]
 
 [dependencies.bevy_ascii_terminal]
 git = "https://github.com/sarkahn/bevy_ascii_terminal"
@@ -26,17 +26,6 @@ rev = "8cfdd64c1708a9d2574e7a9a66bf708024b952d7"
 git = "https://github.com/sarkahn/sark_pathfinding_rs"
 rev = "ca8bc9f93e06bf96630ac11bf8ed78d82329f2e2"
 
-# [dependencies.bevy]
-# path = "../bevy", version = "0.8.0-dev", default-features = false, features = ["png", "bevy_winit", "bevy_render"]}
-# bevy_ascii_terminal = {path="../bevy_ascii_terminal", version = "0.11" }
-# sark_grids = {path="../sark_grids_rs", version = "0.5" }
-# sark_pathfinding = {path="../sark_pathfinding_rs", version="0.2" }
-# adam_fov_rs = {path="../adam_fov_rs", version = "0.2" }
-# rand = "0.8.4"
-# ron = "0.7"
-# serde = "1.0.117"
-# bracket-random = "0.8.2"
-# interpolation = "0.2.0"
 
 [profile.release]
 opt-level = 's'

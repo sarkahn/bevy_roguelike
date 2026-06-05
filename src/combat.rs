@@ -34,17 +34,19 @@ pub struct Strength {
     pub max: i32,
 }
 
-#[derive(Component, Clone, Default)]
-pub struct AttackDice {
+#[derive(Component, Clone, Default, Debug)]
+pub struct Dice {
     pub dice: i32,
     pub faces: i32,
 }
 
-impl AttackDice {
+impl Dice {
     pub fn roll(&self) -> i32 {
+        assert!(self.dice > 0 && self.faces > 0);
+
         let mut i: i32 = 0;
         for _ in 0..self.dice {
-            i += rand::random_range(0..self.faces);
+            i += rand::random_range(1..=self.faces);
         }
         i
     }
@@ -63,7 +65,7 @@ pub struct ActorKilledEvent {
 
 fn on_attack(
     e: On<AttackEvent>,
-    q_attacker: Query<(&Strength, &AttackDice)>,
+    q_attacker: Query<(&Strength, &Dice)>,
     mut q_target: Query<(&mut HitPoints, &Defense)>,
     q_name: Query<&Name>,
     mut commands: Commands,
@@ -105,6 +107,7 @@ fn on_attack(
     }
 }
 
+// TODO: Move to somewhere else?
 fn on_actor_killed(
     e: On<ActorKilledEvent>,
     mut commands: Commands,

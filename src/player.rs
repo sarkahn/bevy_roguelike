@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::combat::{AttackDice, AttackEvent, Strength};
+use crate::combat::{AttackEvent, Strength};
 use crate::monster::Monster;
 use crate::{components::*, xy_to_index};
 
@@ -20,7 +20,7 @@ pub struct Player;
 
 fn player_input(
     mut q_player: Query<
-        (Entity, &Strength, &mut Position, &mut Energy, &mut Movement),
+        (Entity, &Strength, &mut Position, &mut Energy),
         (With<Player>, With<TakingATurn>),
     >,
     q_monsters: Query<&Name, With<Monster>>,
@@ -29,7 +29,7 @@ fn player_input(
     mut actors: ResMut<MapActors>,
     mut commands: Commands,
 ) {
-    if let Ok((entity, _attack, mut pos, mut energy, mut movement)) = q_player.single_mut() {
+    if let Ok((entity, _attack, mut pos, mut energy)) = q_player.single_mut() {
         if read_wait(&input) {
             energy.0 = 0;
             return;
@@ -62,7 +62,6 @@ fn player_input(
         actors.0[nexti] = Some(entity);
         pathing.0.obstacles.set_index(curri, false);
         pathing.0.obstacles.set_index(nexti, true);
-        movement.0 = move_input;
     }
 }
 
