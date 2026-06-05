@@ -5,15 +5,13 @@ use map::Map;
 
 use crate::{map::MapGenSettings, turn_system::Actor};
 
-mod entities;
 mod components;
+mod entities;
 mod map;
+mod map_state;
+mod monster;
 mod render;
 mod turn_system;
-// mod bundle;
-// mod config;
-mod map_state;
-// mod monster;
 // mod movement;
 mod player;
 // mod render;
@@ -35,15 +33,14 @@ pub struct UiTerminal;
 #[derive(Message)]
 pub struct Reset;
 
-
-pub const VIEWPORT_SIZE: UVec2 = UVec2::new(80,GAME_SIZE.y + UI_SIZE.y);
+pub const VIEWPORT_SIZE: UVec2 = UVec2::new(80, GAME_SIZE.y + UI_SIZE.y);
 
 pub const UI_SIZE: UVec2 = UVec2::new(80, 8);
 // TODO: Map size should be separate?
 pub const GAME_SIZE: UVec2 = UVec2::new(80, 32);
 
 pub fn xy_to_index(xy: impl Into<IVec2>) -> usize {
-    let [x,y] = xy.into().to_array();
+    let [x, y] = xy.into().to_array();
     y as usize * GAME_SIZE.x as usize + x as usize
 }
 
@@ -57,19 +54,21 @@ pub fn index_to_xy(index: usize) -> IVec2 {
 pub fn random_point() -> IVec2 {
     let x = rand::random_range(0..GAME_SIZE.x) as i32;
     let y = rand::random_range(0..GAME_SIZE.y) as i32;
-    IVec2::new(x,y)
+    IVec2::new(x, y)
 }
 
 fn setup(mut commands: Commands) {
     commands.spawn((
-      Terminal::new(GAME_SIZE).with_string([0,0], "Hello"),
-      GameTerminal,
-      TerminalMeshPivot::LeftBottom
+        Terminal::new(GAME_SIZE).with_string([0, 0], "Hello"),
+        GameTerminal,
+        TerminalMeshPivot::LeftBottom,
     ));
     commands.spawn((
-        Terminal::new(UI_SIZE).with_border(BoxStyle::SINGLE_LINE).with_string([0,0], "HELLO UI"),
+        Terminal::new(UI_SIZE)
+            .with_border(BoxStyle::SINGLE_LINE)
+            .with_string([0, 0], "HELLO UI"),
         UiTerminal,
-        TerminalMeshPivot::LeftTop
+        TerminalMeshPivot::LeftTop,
     ));
 
     commands.spawn(TerminalCamera::new());
@@ -87,11 +86,11 @@ fn debuggo(mut commands: Commands, input: Res<ButtonInput<KeyCode>>) {
     }
 }
 
-fn reset(mut commands: Commands, 
-    map: Option<Single<Entity, With<Map>>>, 
-    actors: Query<Entity, With<Actor>>, 
+fn reset(
+    mut commands: Commands,
+    map: Option<Single<Entity, With<Map>>>,
+    actors: Query<Entity, With<Actor>>,
 ) {
- 
     for e in &actors {
         commands.entity(e).despawn();
     }
@@ -114,33 +113,25 @@ fn reset(mut commands: Commands,
     }
 
     commands.spawn(map.map);
-
 }
 
 fn main() {
     App::new()
         .add_plugins((DefaultPlugins, TerminalPlugins))
-
         .insert_resource(ClearColor(Color::BLACK))
         .add_message::<Reset>()
-
-
         .add_plugins(visibility::VisiblityPlugin)
         .add_plugins(turn_system::TurnSystemPlugin)
         .add_plugins(map_state::MapStatePlugin)
         .add_plugins(player::PlayerPlugin)
         .add_plugins(render::RenderPlugin)
-
-        
+        .add_plugins(monster::MonstersPlugin)
         .add_systems(First, reset.run_if(on_message::<Reset>))
         .add_systems(Update, debuggo)
         .add_systems(Startup, setup)
-
-        
         // .add_plugin(map::MapGenPlugin)
         // .add_plugin(events::EventsPlugin)
         // //.add_plugin(web_resize::FullViewportPlugin)
-        // .add_plugin(monster::MonstersPlugin)
         // .add_plugin(combat::CombatPlugin)
         // .add_plugin(ui::UiPlugin)
         // .add_startup_system(setup)

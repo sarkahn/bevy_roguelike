@@ -1,14 +1,12 @@
 use std::ops::Range;
 
-use bevy::{
-    math::{IVec2},
-    prelude::*,
-};
-use rand::RngExt;
 use anyhow::Result;
+use bevy::{math::IVec2, prelude::*};
+use rand::RngExt;
 
 use crate::{GAME_SIZE, xy_to_index};
 
+const MAX_PLACE_MONSTER_ATTEMPTS: u32 = 10;
 
 pub struct MapGenSettings {
     seed: u64,
@@ -21,17 +19,16 @@ pub struct MapGenSettings {
 
 impl Default for MapGenSettings {
     fn default() -> Self {
-        Self { 
-            seed: Default::default(), 
-            iterations: 15, 
-            map_size: GAME_SIZE, 
-            room_size: 3..15, 
-            monsters_per_room: 0..4, 
-            items_per_room: 0..2, 
+        Self {
+            seed: Default::default(),
+            iterations: 15,
+            map_size: GAME_SIZE,
+            room_size: 3..15,
+            monsters_per_room: 0..4,
+            items_per_room: 0..2,
         }
     }
 }
-
 
 /// A tile on the [Map].
 #[derive(Eq, PartialEq, Clone, Copy, Default)]
@@ -60,14 +57,12 @@ pub fn build(settings: &MapGenSettings) -> Result<MapData> {
 
     generate_rooms(&mut map, settings);
     place_player(&mut map);
+    place_monsters(settings, &mut map);
 
-    Ok(map)    
+    Ok(map)
 }
 
-fn generate_rooms(
-    map: &mut MapData,
-    settings: &MapGenSettings,
-) {
+fn generate_rooms(map: &mut MapData, settings: &MapGenSettings) {
     let mut rng = rand::rng();
     for _ in 0..settings.iterations {
         let w = rng.random_range(settings.room_size.clone());
@@ -129,13 +124,16 @@ fn place_ver_tunnel(map: &mut Map, y1: i32, y2: i32, x: i32) {
     let max = y1.max(y2);
 
     for y in min..=max {
-        let i = xy_to_index([x,y]);
+        let i = xy_to_index([x, y]);
         map.0[i] = MapTile::Floor;
     }
 }
 
-fn place_player(map: &mut MapData,) {
-    let r = map.rooms.first().expect("Attempting to place player but there's no rooms");
+fn place_player(map: &mut MapData) {
+    let r = map
+        .rooms
+        .first()
+        .expect("Attempting to place player but there's no rooms");
     let p = random_rect_point(*r);
     map.entities.push((p, '@'));
 }
@@ -144,11 +142,13 @@ fn place_monsters(settings: &MapGenSettings, map: &mut MapData) {
     // The player starts in the first room
     for r in map.rooms.iter().skip(1) {
         for _ in 0..rand::random_range(settings.monsters_per_room.clone()) as i32 {
+            let mut tries = 0;
             let mut p = random_rect_point(*r);
-            while map.entities.iter().map(|v|v.0).any(|p2| p == p2) {
+            while map.entities.iter().any(|v| v.0 == p) && tries < MAX_PLACE_MONSTER_ATTEMPTS {
                 p = random_rect_point(*r);
+                tries += 1;
             }
-            let monster = if rand::random_bool(0.5) {'g'} else {'o'};
+            let monster = if rand::random_bool(0.5) { 'g' } else { 'o' };
             map.entities.push((p, monster));
         }
     }
@@ -157,15 +157,13 @@ fn place_monsters(settings: &MapGenSettings, map: &mut MapData) {
 fn random_rect_point(r: IRect) -> IVec2 {
     let x = rand::random_range(r.min.x..=r.max.x);
     let y = rand::random_range(r.min.y..=r.max.y);
-    IVec2::new(x,y)
+    IVec2::new(x, y)
 }
 
 fn overlaps(l: IRect, r: IRect) -> bool {
     l.contains(r.min) || l.contains(r.max)
 }
 
-fn iter_room_points(r: IRect) -> impl Iterator<Item=IVec2> {
-    (r.min.y..=r.max.y).flat_map(move |y| {
-        (r.min.x..=r.max.x).map(move |x| IVec2::new(x,y))
-    })
+fn iter_room_points(r: IRect) -> impl Iterator<Item = IVec2> {
+    (r.min.y..=r.max.y).flat_map(move |y| (r.min.x..=r.max.x).map(move |x| IVec2::new(x, y)))
 }

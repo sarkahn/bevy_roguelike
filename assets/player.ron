@@ -1,8 +1,0 @@
-Player (
-    Name: Player,
-    Position,
-    Movement,
-    Renderable (
-        glyph: '@',
-    ),
-)

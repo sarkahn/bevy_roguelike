@@ -1,11 +1,11 @@
-use bevy::prelude::*;
+use bevy::{ecs::error::info, prelude::*};
 
 pub struct TurnSystemPlugin;
 
 impl Plugin for TurnSystemPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(PreUpdate, turn_begin_system)
-        .add_systems(PostUpdate, turn_end_system);
+            .add_systems(PostUpdate, turn_end_system);
     }
 }
 
@@ -28,7 +28,10 @@ pub struct TakingATurn;
 
 fn turn_begin_system(
     mut commands: Commands,
-    mut q_waiting_actors: Query<(Entity, &mut Energy, &Speed), (With<Actor>, Without<TakingATurn>)>,
+    mut q_waiting_actors: Query<
+        (Entity, &mut Energy, &Speed, Option<&Name>),
+        (With<Actor>, Without<TakingATurn>),
+    >,
     q_acting_actors: Query<&Actor, (With<Energy>, With<Speed>, With<TakingATurn>)>,
 ) {
     if !q_acting_actors.is_empty() {
@@ -37,25 +40,35 @@ fn turn_begin_system(
 
     let mut actor_acting = false;
     while !actor_acting && !q_waiting_actors.is_empty() {
-        for (entity, mut energy, speed) in q_waiting_actors.iter_mut() {
-            assert!(speed.0 > 0, "Speed must be greater than 0");
+        for (entity, mut energy, speed, name) in q_waiting_actors.iter_mut() {
+            assert!(speed.0 > 0);
             energy.0 += speed.0;
 
             if energy.0 >= 100 {
                 actor_acting = true;
                 commands.entity(entity).insert(TakingATurn);
+                // if let Some(name) = name {
+                //     info!("{} is taking a turn", name);
+                // } else {
+                //     warn!("Entity starting a turn, but they have no name");
+                // }
             }
         }
     }
 }
 
 fn turn_end_system(
-    mut commands: Commands, 
-    q_actors: Query<(Entity, &Energy), (With<Actor>, With<TakingATurn>)>,
+    mut commands: Commands,
+    q_actors: Query<(Entity, &Energy, Option<&Name>), (With<Actor>, With<TakingATurn>)>,
 ) {
-    for (entity, energy) in q_actors.iter() {
+    for (entity, energy, name) in q_actors.iter() {
         if energy.0 < 100 {
             commands.entity(entity).remove::<TakingATurn>();
+            // if let Some(name) = name {
+            //     info!("{} is done their turn", name);
+            // } else {
+            //     warn!("Entity ended a turn but they have no name");
+            // }
         }
     }
 }

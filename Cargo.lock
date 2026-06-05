@@ -87,6 +87,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "320119579fcad9c21884f5c4861d16174d0e06250625266f50fe6898340abefa"
 
 [[package]]
+name = "ahash"
+version = "0.8.12"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5a15f179cd60c4584b8a8c596927aadc462e27f2ca70c04e0071964a73ba7a75"
+dependencies = [
+ "cfg-if",
+ "getrandom 0.3.4",
+ "once_cell",
+ "version_check",
+ "zerocopy",
+]
+
+[[package]]
 name = "aho-corasick"
 version = "1.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -711,6 +724,7 @@ dependencies = [
  "bevy_image",
  "bevy_input",
  "bevy_input_focus",
+ "bevy_log",
  "bevy_material",
  "bevy_math",
  "bevy_mesh",
@@ -1017,6 +1031,7 @@ dependencies = [
  "bevy",
  "bevy_ascii_terminal",
  "rand",
+ "sark_pathfinding",
 ]
 
 [[package]]
@@ -1262,6 +1277,9 @@ name = "bit-vec"
 version = "0.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b71798fca2c1fe1086445a7258a4bc81e6e49dcd24c8d0dd9a1e57395b603f51"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "bitflags"
@@ -2354,9 +2372,9 @@ dependencies = [
 
 [[package]]
 name = "log"
-version = "0.4.31"
+version = "0.4.32"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "113b30b4cd05f7c06868fdb2854f66a7b9fece9a48425351cd532e810d74024f"
+checksum = "953f07c43838f8e6f9758cab68bf5bed85465e7587ebe0b823f1bcd81978ad3a"
 
 [[package]]
 name = "matchers"
@@ -3215,6 +3233,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "93fc1dc3aaa9bfed95e02e6eadabb4baf7e3078b0bd1b4d7b6b0b68378900502"
 dependencies = [
  "winapi-util",
+]
+
+[[package]]
+name = "sark_pathfinding"
+version = "0.5.0-dev"
+source = "git+https://github.com/sarkahn/sark_pathfinding_rs?rev=7306ac50615733d98b350f4b58ed2b063b799605#7306ac50615733d98b350f4b58ed2b063b799605"
+dependencies = [
+ "ahash",
+ "arrayvec",
+ "bevy",
+ "bevy_ascii_terminal",
+ "bit-vec",
+ "glam",
 ]
 
 [[package]]

@@ -1,5 +1,9 @@
+use crate::{
+    components::*,
+    player::Player,
+    turn_system::{Actor, Energy, Speed},
+};
 use bevy::prelude::*;
-use crate::{components::*, player::Player, turn_system::{Actor, Energy, Speed}};
 use bevy_ascii_terminal::color::*;
 
 pub fn movable_guy() -> impl Scene {
@@ -72,9 +76,8 @@ pub fn player(pos: IVec2) -> impl Scene {
         Defense { current: 1, max: 1 }
         Strength { current: 3, max: 3 }
         Speed(25)
-        MapView
-        MapMemory
+        //MapView
+        //MapMemory
         Position(pos)
     }
 }
-

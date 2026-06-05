@@ -16,7 +16,7 @@ pub struct Defense {
 #[derive(Component, Clone, Default)]
 pub struct Strength {
     pub current: i32,
-    pub max: i32
+    pub max: i32,
 }
 
 #[derive(Component, Clone, Default)]
@@ -46,7 +46,7 @@ pub struct Movement(pub IVec2);
 #[derive(Default, Debug, Component, Clone)]
 pub struct Monster;
 
-#[derive(Debug, Component, Clone,)]
+#[derive(Debug, Component, Clone)]
 pub struct Renderable {
     pub fg_color: LinearRgba,
     pub bg_color: LinearRgba,
@@ -55,7 +55,11 @@ pub struct Renderable {
 
 impl Default for Renderable {
     fn default() -> Self {
-        Self { fg_color: css::WHITE, bg_color: css::BLACK, glyph: ' ' }
+        Self {
+            fg_color: css::WHITE,
+            bg_color: css::BLACK,
+            glyph: ' ',
+        }
     }
 }
 
