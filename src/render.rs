@@ -5,6 +5,7 @@ use crate::{
     GAME_SIZE,
     GameTerminal,
     Reset,
+    combat::ActorKilled,
     components::{Position, Renderable},
     index_to_xy,
     map::{Map, MapTile},
@@ -180,12 +181,12 @@ where
 fn should_render(
     q_entities_changed: Query<(&Renderable, &Position), Changed<Position>>,
     q_map_changed: Query<&Map, Changed<Map>>,
-    // mut evt_killed: MessageReader<ActorKilled>,
+    killed: MessageReader<ActorKilled>,
     reset: MessageReader<Reset>,
 ) -> bool {
     let entities_changed = !q_entities_changed.is_empty();
     let map_changed = !q_map_changed.is_empty();
-    let killed = false; //evt_killed.iter().next().is_some();
+    let killed = !killed.is_empty();
     let reset = !reset.is_empty();
 
     map_changed || entities_changed || killed || reset

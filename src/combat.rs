@@ -12,7 +12,9 @@ pub struct CombatPlugin;
 
 impl Plugin for CombatPlugin {
     fn build(&self, app: &mut App) {
-        app.add_observer(on_attack).add_observer(on_actor_killed);
+        app.add_message::<ActorKilled>()
+            .add_observer(on_attack)
+            .add_systems(PostUpdate, clear_dead_actor);
     }
 }
 
@@ -58,8 +60,8 @@ pub struct AttackEvent {
     pub target: Entity,
 }
 
-#[derive(Event)]
-pub struct ActorKilledEvent {
+#[derive(Message)]
+pub struct ActorKilled {
     actor: Entity,
 }
 
@@ -78,7 +80,6 @@ fn on_attack(
         // TODO: Proper error handling
         panic!("Attack event initiated with no attacker");
     };
-
     let damage = attack.current + dice.roll() - tar_def.current;
 
     if damage <= 0 {
@@ -103,13 +104,13 @@ fn on_attack(
         )));
     }
     if tar_hp.current == 0 {
-        commands.trigger(ActorKilledEvent { actor: e.target });
+        commands.write_message(ActorKilled { actor: e.target });
     }
 }
 
 // TODO: Move to somewhere else?
-fn on_actor_killed(
-    e: On<ActorKilledEvent>,
+fn clear_dead_actor(
+    mut died: MessageReader<ActorKilled>,
     mut commands: Commands,
     mut pathing: ResMut<PathingData>,
     mut actors: ResMut<MapActors>,
@@ -117,16 +118,18 @@ fn on_actor_killed(
     q_pos: Query<&Position>,
     q_blocker: Query<&PathBlocker>,
 ) {
-    if let Ok(pos) = q_pos.get(e.actor) {
-        let i = xy_to_index(pos.0);
-        actors.0[i] = None;
-        if q_blocker.get(e.actor).is_ok() {
-            pathing.0.remove_obstacle(pos.0);
+    for e in died.read() {
+        if let Ok(pos) = q_pos.get(e.actor) {
+            let i = xy_to_index(pos.0);
+            actors.0[i] = None;
+            if q_blocker.get(e.actor).is_ok() {
+                pathing.0.remove_obstacle(pos.0);
+            }
         }
-    }
 
-    if let Ok(name) = q_name.get(e.actor) {
-        commands.write_message(LogMessage(format!("{} was killed!", name)));
+        if let Ok(name) = q_name.get(e.actor) {
+            commands.write_message(LogMessage(format!("{} was killed!", name)));
+        }
+        commands.entity(e.actor).despawn();
     }
-    commands.entity(e.actor).despawn();
 }
