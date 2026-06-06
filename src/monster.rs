@@ -2,9 +2,9 @@ use bevy::prelude::*;
 use sark_pathfinding::Pathfinder;
 
 use crate::{
+    GameState,
     combat::AttackEvent,
     components::Position,
-    game_state::GameState,
     map_state::{MapActors, PathingData},
     player::Player,
     turn_system::{Energy, TakingATurn},

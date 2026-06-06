@@ -1,10 +1,12 @@
 use bevy::prelude::*;
 
-use crate::combat::{AttackEvent, Strength};
-use crate::game_state::GameState;
-use crate::inventory::PickupItem;
 use crate::items::Item;
 use crate::monster::Monster;
+use crate::{
+    GameState,
+    combat::{AttackEvent, Strength},
+    inventory::PickupItem,
+};
 use crate::{components::*, xy_to_index};
 
 use crate::map_state::{MapActors, PathingData};

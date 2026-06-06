@@ -3,12 +3,15 @@ use bevy::prelude::*;
 use bevy_ascii_terminal::*;
 use map::Map;
 
-use crate::{map::MapGenSettings, turn_system::Actor};
+use crate::{
+    components::{LogMessage, Redraw},
+    map::MapGenSettings,
+    turn_system::Actor,
+};
 
 mod combat;
 mod components;
 mod entities;
-mod game_state;
 mod inventory;
 mod items;
 mod map;
@@ -107,12 +110,21 @@ fn reset(
     commands.spawn(map.map);
 }
 
+#[derive(States, Debug, Hash, Default, Eq, PartialEq, Clone, Copy)]
+pub enum GameState {
+    #[default]
+    Exploring,
+    Inventory,
+}
+
 fn main() {
     App::new()
         .add_plugins((DefaultPlugins, TerminalPlugins))
         .insert_resource(ClearColor(Color::BLACK))
         .add_message::<Reset>()
-        .add_plugins(game_state::GameStatePlugin)
+        .add_message::<LogMessage>()
+        .add_message::<Redraw>()
+        .init_state::<GameState>()
         .add_plugins(ui::UiPlugin)
         .add_plugins(inventory::InventoryPlugin)
         .add_plugins(visibility::VisiblityPlugin)

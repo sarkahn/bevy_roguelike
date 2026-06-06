@@ -1,10 +1,9 @@
 use bevy::prelude::*;
 
 use crate::{
-    components::Position,
+    components::{LogMessage, Position},
     //    ui::PrintLog,
     map_state::{MapActors, PathBlocker, PathingData},
-    ui::LogMessage,
     xy_to_index,
 };
 

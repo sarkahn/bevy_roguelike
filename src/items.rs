@@ -1,5 +1,3 @@
-use std::range::Range;
-
 use bevy::{
     ecs::{component::Component, name::Name},
     prelude::IVec2,
@@ -32,9 +30,9 @@ pub fn minor_healing_potion_pos(p: IVec2) -> impl Scene {
         Name("Minor Healing Potion")
         Item
         HealEffect(Dice { dice: 4, faces: 3 })
-        Drinkable
         Renderable { glyph: '¡', fg_color: color::css::BLUE }
         Position(p)
+        Drinkable
     }
 }
 

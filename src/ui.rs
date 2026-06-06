@@ -1,20 +1,16 @@
 use bevy::prelude::*;
 use bevy_ascii_terminal::{terminal::ProgressBar, *};
 
-use crate::{UI_SIZE, combat::HitPoints, player::Player};
+use crate::{UI_SIZE, combat::HitPoints, components::LogMessage, player::Player};
 
 pub struct UiPlugin;
 
 #[derive(Component)]
 pub struct UiTerminal;
 
-#[derive(Message)]
-pub struct LogMessage(pub String);
-
 impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
-        app.add_message::<LogMessage>()
-            .add_systems(Startup, setup)
+        app.add_systems(Startup, setup)
             .add_systems(PostUpdate, (handle_print, handle_hp_changed));
     }
 }

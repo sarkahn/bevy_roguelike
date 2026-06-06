@@ -22,6 +22,10 @@ impl Default for Renderable {
     }
 }
 
-/// User friendly name.
-#[derive(Component, Clone, Default)]
-pub struct DisplayName(pub String);
+/// Read by the ui system to print log messages to the terminal.
+#[derive(Message)]
+pub struct LogMessage(pub String);
+
+/// A message to indicate the game terminal should redraw at the end of the frame
+#[derive(Message)]
+pub struct Redraw;

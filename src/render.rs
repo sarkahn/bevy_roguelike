@@ -4,7 +4,7 @@ use bevy_ascii_terminal::*;
 use crate::{
     GAME_SIZE, GameTerminal, Reset,
     combat::ActorKilled,
-    components::{Position, Renderable},
+    components::{Position, Redraw, Renderable},
     index_to_xy,
     map::{Map, MapTile},
     player::Player,
@@ -29,14 +29,9 @@ pub const FLOOR_COLOR: LinearRgba = LinearRgba {
 pub struct RenderPlugin;
 impl Plugin for RenderPlugin {
     fn build(&self, app: &mut App) {
-        app.add_message::<Redraw>()
-            .add_systems(Last, render.run_if(should_render));
+        app.add_systems(Last, render.run_if(should_render));
     }
 }
-
-/// A message to indicate the game terminal should redraw at the end of the frame
-#[derive(Message)]
-pub struct Redraw;
 
 fn render(
     q_entities: Query<(&Renderable, &Position), Without<Player>>,

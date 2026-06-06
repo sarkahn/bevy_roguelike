@@ -2,13 +2,10 @@ use bevy::prelude::*;
 use bevy_ascii_terminal::{BoxStyle, Pivot, Terminal, color};
 
 use crate::{
-    GameTerminal,
-    components::Position,
-    game_state::GameState,
-    items::Item,
+    GameState, GameTerminal,
+    components::{LogMessage, Position, Redraw},
     player::Player,
-    render::{self, Redraw},
-    ui::LogMessage,
+    render,
 };
 
 #[derive(Component, Debug)]
@@ -65,7 +62,6 @@ fn show_inventory(
     term.put_string(bordered_pos + IVec2::new(1, 0), "Inventory");
     if let Some(inventory) = inventory.map(|i| i.into_inner()) {
         let mut y = pos.y;
-
         for iname in inventory
             .iter()
             .map(|i| q_name.get(i).expect("Missing item name"))
@@ -85,17 +81,7 @@ fn inventory_update(input: Res<ButtonInput<KeyCode>>, mut commands: Commands) {
     }
 }
 
-fn pickup_item(
-    pickup: On<PickupItem>,
-    q_item: Query<&Item>,
-    q_name: Query<&Name>,
-    mut commands: Commands,
-) {
-    assert!(
-        q_item.get(pickup.item).is_ok(),
-        "Item pickup was attempted on an invalid item"
-    );
-
+fn pickup_item(pickup: On<PickupItem>, q_name: Query<&Name>, mut commands: Commands) {
     commands
         .entity(pickup.item)
         .insert(ItemHeldBy(pickup.picker_upper))
@@ -104,7 +90,7 @@ fn pickup_item(
     let item_name = q_name.get(pickup.item).expect("Missing item name");
     let pup_name = q_name
         .get(pickup.picker_upper)
-        .expect("Missing picker uppper name");
+        .expect("Missing picker upper name");
 
     commands.write_message(LogMessage(format!(
         "{} picks up <fg=sky_blue>{}</fg>.",
