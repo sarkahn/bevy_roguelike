@@ -6,7 +6,7 @@ use rand::RngExt;
 
 use crate::{GAME_SIZE, xy_to_index};
 
-const MAX_PLACE_MONSTER_ATTEMPTS: u32 = 10;
+const MAX_PLACE_ATTEMPTS: u32 = 10;
 
 pub struct MapGenSettings {
     seed: u64,
@@ -58,6 +58,7 @@ pub fn build(settings: &MapGenSettings) -> Result<MapData> {
     generate_rooms(&mut map, settings);
     place_player(&mut map);
     place_monsters(settings, &mut map);
+    place_items(settings, &mut map);
 
     Ok(map)
 }
@@ -144,12 +145,27 @@ fn place_monsters(settings: &MapGenSettings, map: &mut MapData) {
         for _ in 0..rand::random_range(settings.monsters_per_room.clone()) as i32 {
             let mut tries = 0;
             let mut p = random_rect_point(*r);
-            while map.entities.iter().any(|v| v.0 == p) && tries < MAX_PLACE_MONSTER_ATTEMPTS {
+            while map.entities.iter().any(|v| v.0 == p) && tries < MAX_PLACE_ATTEMPTS {
                 p = random_rect_point(*r);
                 tries += 1;
             }
             let monster = if rand::random_bool(0.5) { 'g' } else { 'o' };
             map.entities.push((p, monster));
+        }
+    }
+}
+
+fn place_items(settings: &MapGenSettings, map: &mut MapData) {
+    for r in map.rooms.iter() {
+        for _ in 0..rand::random_range(settings.items_per_room.clone()) {
+            let mut tries = 0;
+            let mut p = random_rect_point(*r);
+            while map.entities.iter().any(|v| v.0 == p) && tries < MAX_PLACE_ATTEMPTS {
+                p = random_rect_point(*r);
+                tries += 1;
+            }
+            let item = if rand::random_bool(0.5) { '¡' } else { ')' };
+            map.entities.push((p, item));
         }
     }
 }

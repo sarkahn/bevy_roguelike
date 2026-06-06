@@ -385,7 +385,7 @@ dependencies = [
 [[package]]
 name = "bevy_ascii_terminal"
 version = "0.19.0-dev"
-source = "git+https://github.com/sarkahn/bevy_ascii_terminal?rev=7a84e16b7de88ee7e8afcfd709620590790461b8#7a84e16b7de88ee7e8afcfd709620590790461b8"
+source = "git+https://github.com/sarkahn/bevy_ascii_terminal?rev=cd1d638cb0cfd85c484d6932eccf3bc04196167e#cd1d638cb0cfd85c484d6932eccf3bc04196167e"
 dependencies = [
  "anyhow",
  "bevy",
@@ -1043,7 +1043,7 @@ dependencies = [
  "adam_fov_rs",
  "anyhow",
  "bevy",
- "bevy_ascii_terminal 0.19.0-dev (git+https://github.com/sarkahn/bevy_ascii_terminal?rev=7a84e16b7de88ee7e8afcfd709620590790461b8)",
+ "bevy_ascii_terminal 0.19.0-dev (git+https://github.com/sarkahn/bevy_ascii_terminal?rev=cd1d638cb0cfd85c484d6932eccf3bc04196167e)",
  "rand",
  "sark_pathfinding",
 ]

@@ -4,6 +4,7 @@ use sark_pathfinding::Pathfinder;
 use crate::{
     combat::AttackEvent,
     components::Position,
+    game_state::GameState,
     map_state::{MapActors, PathingData},
     player::Player,
     turn_system::{Energy, TakingATurn},
@@ -15,7 +16,7 @@ pub struct MonstersPlugin;
 
 impl Plugin for MonstersPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, monster_ai);
+        app.add_systems(Update, monster_ai.run_if(in_state(GameState::Exploring)));
     }
 }
 

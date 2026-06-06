@@ -1,6 +1,9 @@
 use bevy::prelude::*;
 
 use crate::combat::{AttackEvent, Strength};
+use crate::game_state::GameState;
+use crate::inventory::PickupItem;
+use crate::items::Item;
 use crate::monster::Monster;
 use crate::{components::*, xy_to_index};
 
@@ -11,7 +14,10 @@ pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(PreUpdate, player_input);
+        app.add_systems(
+            PreUpdate,
+            player_input.run_if(in_state(GameState::Exploring)),
+        );
     }
 }
 
@@ -25,6 +31,7 @@ fn player_input(
     >,
     q_monsters: Query<&Name, With<Monster>>,
     input: Res<ButtonInput<KeyCode>>,
+    items: Query<(Entity, &Position), (With<Item>, Without<Player>)>,
     mut pathing: ResMut<PathingData>,
     mut actors: ResMut<MapActors>,
     mut commands: Commands,
@@ -33,6 +40,22 @@ fn player_input(
         if read_wait(&input) {
             energy.0 = 0;
             return;
+        }
+
+        if input.just_pressed(KeyCode::KeyI) {
+            commands.set_state(GameState::Inventory);
+            return;
+        }
+
+        if input.just_pressed(KeyCode::Comma) {
+            for (e, p) in &items {
+                if p.0 == pos.0 {
+                    commands.trigger(PickupItem {
+                        item: e,
+                        picker_upper: entity,
+                    })
+                }
+            }
         }
 
         let move_input = read_movement(&input);

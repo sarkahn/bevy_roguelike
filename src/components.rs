@@ -21,3 +21,7 @@ impl Default for Renderable {
         }
     }
 }
+
+/// User friendly name.
+#[derive(Component, Clone, Default)]
+pub struct DisplayName(pub String);

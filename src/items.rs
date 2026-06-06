@@ -1,7 +1,7 @@
 use std::range::Range;
 
 use bevy::{
-    ecs::component::Component,
+    ecs::{component::Component, name::Name},
     prelude::IVec2,
     scene::{Scene, bsn},
 };
@@ -29,7 +29,7 @@ pub struct Castable;
 
 pub fn minor_healing_potion_pos(p: IVec2) -> impl Scene {
     bsn! {
-        #MinorHealingPotion
+        Name("Minor Healing Potion")
         Item
         HealEffect(Dice { dice: 4, faces: 3 })
         Drinkable
@@ -40,10 +40,11 @@ pub fn minor_healing_potion_pos(p: IVec2) -> impl Scene {
 
 pub fn scroll_of_magic_missile_pos(p: IVec2) -> impl Scene {
     bsn! {
-        #ScrollOfMagicMissile
+        Name("Scroll of Magic Missile")
         Item
         DamageEffect(Dice { dice: 4, faces: 4})
         Renderable { glyph: ')', fg_color: color::css::ORANGE }
         Position(p)
+        Castable
     }
 }

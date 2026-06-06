@@ -2,18 +2,14 @@ use bevy::prelude::*;
 use bevy_ascii_terminal::*;
 
 use crate::{
-    GAME_SIZE,
-    GameTerminal,
-    Reset,
+    GAME_SIZE, GameTerminal, Reset,
     combat::ActorKilled,
     components::{Position, Renderable},
     index_to_xy,
     map::{Map, MapTile},
     player::Player,
     visibility::{MapMemory, MapView},
-    xy_to_index, // movement::Position,
-                 // player::Player,
-                 // visibility::{MapMemory, MapView}, GameTerminal, combat::ActorKilledEvent,
+    xy_to_index,
 };
 
 pub const WALL_COLOR: LinearRgba = LinearRgba {
@@ -33,13 +29,18 @@ pub const FLOOR_COLOR: LinearRgba = LinearRgba {
 pub struct RenderPlugin;
 impl Plugin for RenderPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Last, render.run_if(should_render));
+        app.add_message::<Redraw>()
+            .add_systems(Last, render.run_if(should_render));
     }
 }
 
+/// A message to indicate the game terminal should redraw at the end of the frame
+#[derive(Message)]
+pub struct Redraw;
+
 fn render(
-    q_entities: Query<(&Renderable, &Position)>,
-    q_player: Query<(Entity, &MapView), With<Player>>,
+    q_entities: Query<(&Renderable, &Position), Without<Player>>,
+    q_player: Query<(Entity, &Position, &Renderable, &MapView), With<Player>>,
     q_memory: Query<&MapMemory>,
     map: Single<&Map>,
     mut term: Single<&mut Terminal, With<GameTerminal>>,
@@ -48,11 +49,13 @@ fn render(
     term.set_pivot(Pivot::LeftBottom);
     let map = map.into_inner();
 
-    if let Ok((entity, player_view)) = q_player.single() {
+    // TODO: Rework this...separate items as well
+    if let Ok((entity, player_pos, r, player_view)) = q_player.single() {
         if let Ok(memory) = q_memory.get(entity) {
             render_memory(memory, map, &mut term);
         }
         render_view(player_view, &mut term, map, q_entities.iter());
+        term.put_tile(player_pos.0, r.into());
     } else {
         render_everything(map, &mut term, q_entities.iter());
     }
@@ -136,7 +139,7 @@ fn render_memory(memory: &MapMemory, map: &Map, term: &mut Terminal) {
     }
 }
 
-fn greyscale(c: LinearRgba) -> LinearRgba {
+pub fn greyscale(c: LinearRgba) -> LinearRgba {
     let [r, g, b, _] = c.to_f32_array();
     let grey = 0.2126 * r + 0.7152 * g + 0.0722 * b;
     let grey = grey / 8.0;
@@ -183,11 +186,13 @@ fn should_render(
     q_map_changed: Query<&Map, Changed<Map>>,
     killed: MessageReader<ActorKilled>,
     reset: MessageReader<Reset>,
+    redraw: MessageReader<Redraw>,
 ) -> bool {
     let entities_changed = !q_entities_changed.is_empty();
     let map_changed = !q_map_changed.is_empty();
-    let killed = !killed.is_empty();
-    let reset = !reset.is_empty();
+    let entity_killed = !killed.is_empty();
+    let map_reset = !reset.is_empty();
+    let redraw = !redraw.is_empty();
 
-    map_changed || entities_changed || killed || reset
+    map_changed || entities_changed || entity_killed || map_reset || redraw
 }

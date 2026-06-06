@@ -63,7 +63,7 @@ fn setup(mut commands: Commands) {
 }
 
 fn debuggo(mut commands: Commands, input: Res<ButtonInput<KeyCode>>) {
-    if input.just_pressed(KeyCode::Escape) {
+    if input.pressed(KeyCode::ControlLeft) && input.just_pressed(KeyCode::KeyZ) {
         commands.write_message(AppExit::Success);
     }
 
@@ -96,6 +96,12 @@ fn reset(
         if c == 'o' {
             commands.spawn_scene(entities::orc(p));
         }
+        if c == '¡' {
+            commands.spawn_scene(items::minor_healing_potion_pos(p));
+        }
+        if c == ')' {
+            commands.spawn_scene(items::scroll_of_magic_missile_pos(p));
+        }
     }
 
     commands.spawn(map.map);
@@ -106,7 +112,9 @@ fn main() {
         .add_plugins((DefaultPlugins, TerminalPlugins))
         .insert_resource(ClearColor(Color::BLACK))
         .add_message::<Reset>()
+        .add_plugins(game_state::GameStatePlugin)
         .add_plugins(ui::UiPlugin)
+        .add_plugins(inventory::InventoryPlugin)
         .add_plugins(visibility::VisiblityPlugin)
         .add_plugins(combat::CombatPlugin)
         .add_plugins(turn_system::TurnSystemPlugin)
