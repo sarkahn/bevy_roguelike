@@ -1,16 +1,16 @@
 use bevy::prelude::*;
 
-use crate::items::Item;
-use crate::monster::Monster;
 use crate::{
     GameState,
     combat::{AttackEvent, Strength},
+    components::*,
     inventory::PickupItem,
+    items::Item,
+    map_state::{MapActors, PathingData},
+    monster::Monster,
+    turn_system::{Energy, TakingATurn},
+    xy_to_index,
 };
-use crate::{components::*, xy_to_index};
-
-use crate::map_state::{MapActors, PathingData};
-use crate::turn_system::{Energy, TakingATurn};
 
 pub struct PlayerPlugin;
 
@@ -92,14 +92,10 @@ fn player_input(
 
 fn read_movement(input: &ButtonInput<KeyCode>) -> IVec2 {
     use KeyCode::*;
-    let right =
-        input.any_just_pressed([ArrowRight, KeyE, KeyD, KeyC, Numpad9, Numpad6, Numpad3]) as i32;
-    let left =
-        input.any_just_pressed([ArrowLeft, KeyA, KeyQ, KeyZ, Numpad7, Numpad4, Numpad1]) as i32;
-    let up = input.any_just_pressed([ArrowUp, KeyQ, KeyW, KeyE, Numpad7, Numpad8, Numpad9]) as i32;
-    let down = input
-        .any_just_pressed([ArrowDown, KeyZ, KeyX, KeyS, KeyC, Numpad1, Numpad2, Numpad3])
-        as i32;
+    let right = input.any_just_pressed(crate::input::RIGHT.iter().cloned()) as i32;
+    let left = input.any_just_pressed(crate::input::LEFT.iter().cloned()) as i32;
+    let up = input.any_just_pressed(crate::input::UP.iter().cloned()) as i32;
+    let down = input.any_just_pressed(crate::input::DOWN.iter().cloned()) as i32;
 
     IVec2::new(right - left, up - down)
 }

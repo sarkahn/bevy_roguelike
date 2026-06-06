@@ -11,8 +11,7 @@ pub struct CombatPlugin;
 
 impl Plugin for CombatPlugin {
     fn build(&self, app: &mut App) {
-        app.add_message::<ActorKilled>()
-            .add_observer(on_attack)
+        app.add_observer(on_attack)
             .add_systems(PostUpdate, clear_dead_actor);
     }
 }

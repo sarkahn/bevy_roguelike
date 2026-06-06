@@ -59,11 +59,6 @@ fn turn_end_system(
     for (entity, energy, _name) in q_actors.iter() {
         if energy.0 < 100 {
             commands.entity(entity).remove::<TakingATurn>();
-            // if let Some(name) = name {
-            //     info!("{} is done their turn", name);
-            // } else {
-            //     warn!("Entity ended a turn but they have no name");
-            // }
         }
     }
 }

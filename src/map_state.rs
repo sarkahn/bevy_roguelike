@@ -12,9 +12,7 @@ pub struct MapStatePlugin;
 
 impl Plugin for MapStatePlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<PathingData>()
-            .init_resource::<MapActors>()
-            .add_systems(PreUpdate, update_map_state_system);
+        app.add_systems(PreUpdate, update_map_state_system);
     }
 }
 

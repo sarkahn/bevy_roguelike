@@ -1,17 +1,38 @@
-use bevy::prelude::*;
-
+use bevy::{
+    DefaultPlugins,
+    app::{App, AppExit, First, Startup, Update},
+    camera::ClearColor,
+    color::Color,
+    ecs::{
+        component::Component,
+        entity::Entity,
+        message::Message,
+        query::With,
+        schedule::{IntoScheduleConfigs, common_conditions::on_message},
+        system::{Commands, Query, Res, Single},
+    },
+    input::{ButtonInput, keyboard::KeyCode},
+    math::{IVec2, UVec2},
+    scene::CommandsSceneExt,
+    state::{app::AppExtStates, state::States},
+};
 use bevy_ascii_terminal::*;
 use map::Map;
 
 use crate::{
+    combat::ActorKilled,
     components::{LogMessage, Redraw},
+    inventory::PickupItem,
     map::MapGenSettings,
+    map_state::{MapActors, PathingData},
+    player::Player,
     turn_system::Actor,
 };
 
 mod combat;
 mod components;
 mod entities;
+mod input;
 mod inventory;
 mod items;
 mod map;
@@ -65,13 +86,31 @@ fn setup(mut commands: Commands) {
     commands.write_message(Reset);
 }
 
-fn debuggo(mut commands: Commands, input: Res<ButtonInput<KeyCode>>) {
+fn debuggo(
+    mut commands: Commands,
+    input: Res<ButtonInput<KeyCode>>,
+    q_player: Option<Single<Entity, With<Player>>>,
+) {
     if input.pressed(KeyCode::ControlLeft) && input.just_pressed(KeyCode::KeyZ) {
         commands.write_message(AppExit::Success);
     }
 
-    if input.just_pressed(KeyCode::Space) {
+    if input.just_pressed(KeyCode::KeyR) {
         commands.write_message(Reset);
+    }
+
+    if input.just_pressed(KeyCode::KeyG) {
+        if let Some(player) = q_player.map(|v| v.into_inner()) {
+            let item = if rand::random_bool(0.5) {
+                commands.spawn_scene(items::minor_healing_potion()).id()
+            } else {
+                commands.spawn_scene(items::scroll_of_magic_missile()).id()
+            };
+            commands.trigger(PickupItem {
+                item,
+                picker_upper: player,
+            });
+        }
     }
 }
 
@@ -124,9 +163,13 @@ fn main() {
         .add_message::<Reset>()
         .add_message::<LogMessage>()
         .add_message::<Redraw>()
+        .add_message::<ActorKilled>()
         .init_state::<GameState>()
+        .init_resource::<PathingData>()
+        .init_resource::<MapActors>()
         .add_plugins(ui::UiPlugin)
         .add_plugins(inventory::InventoryPlugin)
+        .add_plugins(items::ItemsPlugin)
         .add_plugins(visibility::VisiblityPlugin)
         .add_plugins(combat::CombatPlugin)
         .add_plugins(turn_system::TurnSystemPlugin)

@@ -72,7 +72,7 @@ pub fn player(pos: IVec2) -> impl Scene {
         Player
         combat_guy()
         movable_guy()
-        Renderable { glyph: '@', fg_color: css::WHITE }
+        Renderable { glyph: '@', fg_color: css::YELLOW }
         HitPoints { current: 60, max: 60 }
         Dice { dice: 5, faces: 3 }
         Defense { current: 1, max: 1 }
