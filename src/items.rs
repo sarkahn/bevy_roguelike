@@ -128,12 +128,12 @@ fn use_item(
     }
     commands.entity(e.item).despawn();
 
-    energy.0 = 0;
+    // if let Ok((name, effect)) = q_damage_item.get(e.item) {
+    //     // todo: Need a system to detect when hp is 0 instead of having to send messages manually
+    //     let old = hp.current;
+    //     hp.current = (hp.current - effect.0.roll()).max(0);
+    //     let diff = hp.current - old;
+    // }
 
-    if let Ok((name, effect)) = q_damage_item.get(e.item) {
-        // todo: Need a system to detect when hp is 0 instead of having to send messages manually
-        let old = hp.current;
-        hp.current = (hp.current - effect.0.roll()).max(0);
-        let diff = hp.current - old;
-    }
+    energy.0 = 0;
 }

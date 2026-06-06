@@ -24,7 +24,7 @@ pub struct InventoryPlugin;
 
 impl Plugin for InventoryPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(GameState::Inventory), show_inventory)
+        app.add_systems(OnEnter(GameState::Inventory), inventory_start)
             .add_systems(
                 Update,
                 inventory_update.run_if(in_state(GameState::Inventory)),
@@ -42,7 +42,7 @@ pub struct PickupItem {
 const INV_POS: IVec2 = IVec2::new(8, 8);
 const INV_SIZE: IVec2 = IVec2::new(30, 15);
 
-fn show_inventory(
+fn inventory_start(
     mut term: Single<&mut Terminal, With<GameTerminal>>,
     inventory: Option<Single<&HeldItems, With<Player>>>,
     q_name: Query<&Name>,

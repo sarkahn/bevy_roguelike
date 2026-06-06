@@ -5,9 +5,9 @@ use sark_pathfinding::taxi_dist;
 use crate::{
     GameState, GameTerminal, UI_SIZE,
     combat::HitPoints,
-    components::{BeginTargeting, LogMessage, Position, Redraw, Targeting, TargetingRange},
+    components::{BeginTargeting, LogMessage, Position, Redraw, Targeting},
     iter_rect_points,
-    map_state::PathingData,
+    map_state::{MapActors, PathingData},
     player::Player,
     visibility::MapView,
 };
@@ -109,6 +109,7 @@ fn targeting_update(
     time: Res<Time>,
     q_view: Query<&MapView>,
     pathing: Res<PathingData>,
+    actors: Res<MapActors>,
     mut term: Single<&mut Terminal, With<GameTerminal>>,
     input: Res<ButtonInput<KeyCode>>,
     mut commands: Commands,
@@ -124,7 +125,7 @@ fn targeting_update(
     let pulse = pingpong(time.elapsed_secs(), 1.0);
 
     let pulse_col = LinearRgba::from_u8_array([73, 85, 89, 255]);
-    let target_col = LinearRgba::RED;
+    let target_col = color::css::ORANGE_RED;
 
     let pulse_col = LinearRgba::BLACK.lerp(pulse_col, pulse);
     let target_col = LinearRgba::BLACK.lerp(target_col, pulse);
@@ -134,10 +135,14 @@ fn targeting_update(
         .expect("Attempting to target with a map view");
 
     for p in &data.points {
-        if !view.get(*p) || pathing.0.is_obstacle(*p) {
+        if !view.get(*p) {
             continue;
         }
-        term.put_bg_color(*p, pulse_col);
+        if actors.0.contains_key(p) {
+            term.put_bg_color(*p, target_col);
+        } else if !pathing.0.is_obstacle(*p) {
+            term.put_bg_color(*p, pulse_col);
+        }
     }
 }
 
