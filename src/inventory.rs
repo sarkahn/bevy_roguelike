@@ -1,11 +1,11 @@
-use bevy::prelude::*;
+use bevy::{math::VectorSpace, prelude::*};
 use bevy_ascii_terminal::{BoxStyle, Pivot, Terminal, TerminalStringBuilder};
 
 use crate::{
     GameState, GameTerminal,
-    components::{LogMessage, Position, Redraw},
+    components::{BeginTargeting, LogMessage, Position, Redraw, TargetingRange},
     input,
-    items::UseTargetedItem,
+    items::{Castable, Drinkable, UseTargetedItem},
     player::Player,
     render,
 };
@@ -83,6 +83,8 @@ fn inventory_update(
     inventory: Option<Single<&HeldItems, With<Player>>>,
     q_name: Query<&Name>,
     q_player: Single<Entity, With<Player>>,
+    q_drinkable: Query<Entity, With<Drinkable>>,
+    q_castable: Query<(Entity, &TargetingRange), With<Castable>>,
     mut commands: Commands,
 ) {
     if input.just_pressed(KeyCode::Escape) {
@@ -109,16 +111,29 @@ fn inventory_update(
         *selected = (*selected - 1).rem_euclid(max);
     }
 
+    let selected_item = inventory[*selected as usize];
+
     if input.any_just_pressed(input::ACCEPT.iter().cloned()) {
-        // TODO: Handle targeting for scrolls, allow throwing, etc...
         let player = q_player.into_inner();
-        commands.trigger(UseTargetedItem {
-            user: player,
-            target: player,
-            item: inventory[*selected as usize],
-        });
-        commands.set_state(GameState::Exploring);
-        commands.write_message(Redraw);
+
+        if let Ok((_, range)) = q_castable.get(selected_item) {
+            commands.trigger(BeginTargeting {
+                source: player,
+                range: range.0,
+                effect_haver: selected_item,
+            });
+        }
+        if q_drinkable.get(selected_item).is_ok() {
+            commands.trigger(UseTargetedItem {
+                user: player,
+                target: player,
+                item: selected_item,
+            });
+
+            commands.set_state(GameState::Exploring);
+            commands.write_message(Redraw);
+        }
+
         return;
     }
 

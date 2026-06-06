@@ -50,14 +50,19 @@ fn player_input(
         }
 
         if input.just_pressed(KeyCode::Comma) {
+            energy.0 = 0;
             for (e, p) in &items {
                 if p.0 == pos.0 {
                     commands.trigger(PickupItem {
                         item: e,
                         picker_upper: entity,
-                    })
+                    });
+                    return;
                 }
             }
+
+            commands.write_message(LogMessage("There was nothing to pick up.".to_string()));
+            return;
         }
 
         let move_input = read_movement(&input);
@@ -66,14 +71,15 @@ fn player_input(
         }
 
         let curri = xy_to_index(pos.0);
-        let nexti = xy_to_index(pos.0 + move_input);
+        let next = pos.0 + move_input;
+        let nexti = xy_to_index(next);
 
         if pathing.0.obstacles.get_index(nexti) {
-            if let Some(target) = actors.0[nexti] {
-                if let Ok(_name) = q_monsters.get(target) {
+            if let Some(target) = actors.0.get(&next) {
+                if let Ok(_name) = q_monsters.get(*target) {
                     commands.trigger(AttackEvent {
                         actor: entity,
-                        target,
+                        target: *target,
                     });
                     energy.0 = 0;
                 }
@@ -81,17 +87,18 @@ fn player_input(
             return;
         }
 
-        pos.0 = pos.0 + move_input;
         energy.0 = 0;
-        actors.0[curri] = None;
-        actors.0[nexti] = Some(entity);
+
+        actors.0.remove(&pos.0);
+        pos.0 = pos.0 + move_input;
+        actors.0.insert(pos.0, entity);
+
         pathing.0.obstacles.set_index(curri, false);
         pathing.0.obstacles.set_index(nexti, true);
     }
 }
 
 fn read_movement(input: &ButtonInput<KeyCode>) -> IVec2 {
-    use KeyCode::*;
     let right = input.any_just_pressed(crate::input::RIGHT.iter().cloned()) as i32;
     let left = input.any_just_pressed(crate::input::LEFT.iter().cloned()) as i32;
     let up = input.any_just_pressed(crate::input::UP.iter().cloned()) as i32;

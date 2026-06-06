@@ -118,8 +118,7 @@ fn clear_dead_actor(
 ) {
     for e in died.read() {
         if let Ok(pos) = q_pos.get(e.actor) {
-            let i = xy_to_index(pos.0);
-            actors.0[i] = None;
+            actors.0.remove(&pos.0);
             if q_blocker.get(e.actor).is_ok() {
                 pathing.0.remove_obstacle(pos.0);
             }

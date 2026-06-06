@@ -3,7 +3,8 @@ use bevy_ascii_terminal::color;
 
 use crate::{
     combat::{Dice, HitPoints},
-    components::{LogMessage, Position, Renderable},
+    components::{LogMessage, Position, Renderable, TargetingRange},
+    turn_system::Energy,
 };
 
 pub struct ItemsPlugin;
@@ -60,6 +61,7 @@ pub fn scroll_of_magic_missile() -> impl Scene {
         DamageEffect(Dice { dice: 4, faces: 4})
         Renderable { glyph: ')', fg_color: color::css::ORANGE }
         Castable
+        TargetingRange(4)
     }
 }
 
@@ -76,51 +78,57 @@ fn use_item(
     mut q_target: Query<(&Name, &mut HitPoints)>,
     q_healing_item: Query<(&Name, &HealEffect)>,
     q_damage_item: Query<(&Name, &DamageEffect)>,
+    mut q_energy: Query<&mut Energy>,
     mut commands: Commands,
 ) {
     let user = q_user.get(e.user).expect("Unnamed actor used an item");
     let (tar, mut hp) = q_target.get_mut(e.target).expect("Invalid target");
 
-    if let Ok((name, effect)) = q_healing_item.get(e.item) {
-        let old = hp.current;
-        hp.current = (hp.current + effect.0.roll()).min(hp.max);
-        let diff = hp.current - old;
+    let (name, effect) = q_healing_item.get(e.item).expect("Invalid item user state");
+    let mut energy = q_energy
+        .get_mut(e.user)
+        .expect("Item user was missing energy component");
 
-        if e.target == e.user {
-            if diff == 0 {
-                commands.write_message(LogMessage(format!(
-                    "{} used {}, but it had no effect...",
-                    user.as_str(),
-                    name.as_str(),
-                )));
-            } else {
-                commands.write_message(LogMessage(format!(
-                    "{} used {} and restored {} hit points.",
-                    user.as_str(),
-                    name.as_str(),
-                    diff
-                )));
-            }
+    let old = hp.current;
+    hp.current = (hp.current + effect.0.roll()).min(hp.max);
+    let diff = hp.current - old;
+
+    if e.target == e.user {
+        if diff == 0 {
+            commands.write_message(LogMessage(format!(
+                "{} used {}, but it had no effect...",
+                user.as_str(),
+                name.as_str(),
+            )));
         } else {
-            if diff == 0 {
-                commands.write_message(LogMessage(format!(
-                    "{} used {} on {}, but it had no effect...",
-                    user.as_str(),
-                    name.as_str(),
-                    tar.as_str(),
-                )));
-            } else {
-                commands.write_message(LogMessage(format!(
-                    "{} used {} on {}, it restored {} hit points.",
-                    user.as_str(),
-                    name.as_str(),
-                    tar.as_str(),
-                    diff
-                )));
-            }
+            commands.write_message(LogMessage(format!(
+                "{} used {} and restored {} hit points.",
+                user.as_str(),
+                name.as_str(),
+                diff
+            )));
         }
-        commands.entity(e.item).despawn();
+    } else {
+        if diff == 0 {
+            commands.write_message(LogMessage(format!(
+                "{} used {} on {}, but it had no effect...",
+                user.as_str(),
+                name.as_str(),
+                tar.as_str(),
+            )));
+        } else {
+            commands.write_message(LogMessage(format!(
+                "{} used {} on {}, it restored {} hit points.",
+                user.as_str(),
+                name.as_str(),
+                tar.as_str(),
+                diff
+            )));
+        }
     }
+    commands.entity(e.item).despawn();
+
+    energy.0 = 0;
 
     if let Ok((name, effect)) = q_damage_item.get(e.item) {
         // todo: Need a system to detect when hp is 0 instead of having to send messages manually

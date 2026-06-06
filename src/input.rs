@@ -5,3 +5,4 @@ pub const LEFT: &[KeyCode] = &[ArrowLeft, KeyA, KeyQ, KeyZ, Numpad7, Numpad4, Nu
 pub const UP: &[KeyCode] = &[ArrowUp, KeyQ, KeyW, KeyE, Numpad7, Numpad8, Numpad9];
 pub const DOWN: &[KeyCode] = &[ArrowDown, KeyZ, KeyX, KeyS, KeyC, Numpad1, Numpad2, Numpad3];
 pub const ACCEPT: &[KeyCode] = &[Enter, Space];
+pub const CANCEL: &[KeyCode] = &[Escape];

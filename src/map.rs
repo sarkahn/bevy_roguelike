@@ -4,7 +4,7 @@ use anyhow::Result;
 use bevy::{math::IVec2, prelude::*};
 use rand::RngExt;
 
-use crate::{GAME_SIZE, xy_to_index};
+use crate::{GAME_SIZE, iter_rect_points, xy_to_index};
 
 const MAX_PLACE_ATTEMPTS: u32 = 10;
 
@@ -92,7 +92,7 @@ fn generate_rooms(map: &mut MapData, settings: &MapGenSettings) {
 }
 
 fn place_room(map: &mut Map, room: &IRect) {
-    for p in iter_room_points(*room) {
+    for p in iter_rect_points(*room) {
         let i = xy_to_index(p);
         map.0[i] = MapTile::Floor;
     }
@@ -178,8 +178,4 @@ fn random_rect_point(r: IRect) -> IVec2 {
 
 fn overlaps(l: IRect, r: IRect) -> bool {
     l.contains(r.min) || l.contains(r.max)
-}
-
-fn iter_room_points(r: IRect) -> impl Iterator<Item = IVec2> {
-    (r.min.y..=r.max.y).flat_map(move |y| (r.min.x..=r.max.x).map(move |x| IVec2::new(x, y)))
 }

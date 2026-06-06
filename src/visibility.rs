@@ -1,4 +1,5 @@
 use bevy::{math::IVec2, prelude::*};
+use sark_pathfinding::bit_grid::BitGrid;
 
 use crate::{
     GAME_SIZE,
@@ -20,8 +21,8 @@ impl Plugin for VisiblityPlugin {
 #[derive(Component, Debug, Default, Clone)]
 pub struct MapMemory(pub Vec<bool>);
 
-#[derive(Component, Debug, Default, Clone)]
-pub struct MapView(pub Vec<bool>);
+#[derive(Component, Debug, Default, Clone, Deref, DerefMut)]
+pub struct MapView(pub BitGrid);
 
 #[derive(Component, Debug, Default, Clone)]
 pub struct ViewRange(pub u32);
@@ -37,14 +38,14 @@ fn view_system(
     if let Ok(map) = q_map.single() {
         for (mut view, pos, range) in q_view.iter_mut() {
             if view.0.len() != map.0.len() {
-                (*view).0 = vec![false; map.0.len()];
+                (*view).0 = BitGrid::new(GAME_SIZE);
             }
 
-            view.0.fill(false);
+            view.0.set_all(false);
 
             // NOTE: Assumes map size = view size = GAME_SIZE
             let blocks_vision = |p: IVec2| map.0[xy_to_index(p)] == MapTile::Wall;
-            let mark_visible = |p: IVec2| view.0[xy_to_index(p)] = true;
+            let mark_visible = |p: IVec2| view.0.set(p, true);
 
             compute_fov(
                 pos.0,
@@ -64,20 +65,20 @@ fn view_memory_system(
     if let Ok(map) = q_map.single() {
         for (mut view, mut memory, pos, range) in q_view.iter_mut() {
             if view.0.len() != map.0.len() {
-                (*view).0 = vec![false; map.0.len()];
+                (*view).0 = BitGrid::new(GAME_SIZE);
             }
             if memory.0.len() != map.0.len() {
                 (*memory).0 = vec![false; map.0.len()];
             }
 
             // Reset view but not memory
-            view.0.fill(false);
+            view.0.set_all(false);
 
             // NOTE: Assumes map size = view size = GAME_SIZE
             let blocks_vision = |p: IVec2| map.0[xy_to_index(p)] == MapTile::Wall;
             let mark_visible = |p: IVec2| {
                 let i = xy_to_index(p);
-                view.0[i] = true;
+                view.0.set_index(i, true);
                 memory.0[i] = true;
             };
 

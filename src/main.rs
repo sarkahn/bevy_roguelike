@@ -12,7 +12,7 @@ use bevy::{
         system::{Commands, Query, Res, Single},
     },
     input::{ButtonInput, keyboard::KeyCode},
-    math::{IVec2, UVec2},
+    math::{IRect, IVec2, UVec2},
     scene::CommandsSceneExt,
     state::{app::AppExtStates, state::States},
 };
@@ -72,6 +72,10 @@ pub fn random_point() -> IVec2 {
     let x = rand::random_range(0..GAME_SIZE.x) as i32;
     let y = rand::random_range(0..GAME_SIZE.y) as i32;
     IVec2::new(x, y)
+}
+
+pub fn iter_rect_points(r: IRect) -> impl Iterator<Item = IVec2> {
+    (r.min.y..=r.max.y).flat_map(move |y| (r.min.x..=r.max.x).map(move |x| IVec2::new(x, y)))
 }
 
 fn setup(mut commands: Commands) {
@@ -154,6 +158,7 @@ pub enum GameState {
     #[default]
     Exploring,
     Inventory,
+    Targeting,
 }
 
 fn main() {

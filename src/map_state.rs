@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{platform::collections::HashMap, prelude::*};
 use sark_pathfinding::{PathMap2d, grid::SizedGrid};
 
 use crate::{
@@ -24,7 +24,7 @@ pub struct PathBlocker;
 pub struct PathingData(pub PathMap2d);
 
 #[derive(Resource, Default, Clone, Debug)]
-pub struct MapActors(pub Vec<Option<Entity>>);
+pub struct MapActors(pub HashMap<IVec2, Entity>);
 
 fn update_map_state_system(
     q_moved_actors: Query<&Position, (With<PathBlocker>, Changed<Position>)>,
@@ -48,19 +48,19 @@ fn update_map_state_system(
         }
 
         if entities.0.len() != map.0.len() {
-            entities.0 = vec![None; map.0.len()];
+            entities.0 = HashMap::new();
         }
 
         // Populate blockers from map tiles first
         for (i, t) in map.0.iter().enumerate() {
             pathing.0.obstacles.set_index(i, matches!(t, MapTile::Wall));
         }
-        entities.0.fill(None);
+        entities.0.clear();
 
         for (entity, pos) in q_blockers.iter() {
             let i = xy_to_index(pos.0);
             pathing.0.obstacles.set_index(i, true);
-            entities.0[i] = Some(entity);
+            entities.0.insert(pos.0, entity);
         }
     }
 }

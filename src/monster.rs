@@ -42,7 +42,7 @@ fn monster_ai(
             let player_posi = xy_to_index(player_pos);
 
             // If Monster can see the player
-            if view.0[player_posi] {
+            if view.0.get_index(player_posi) {
                 // Open the player and monster positions so pathfinding doesn't see them as obstacles
                 pathing.0.obstacles.set_index(posi, false);
                 pathing.0.obstacles.set_index(player_posi, false);
@@ -54,10 +54,10 @@ fn monster_ai(
                             target: player,
                         });
                     } else {
-                        entities.0[posi] = None;
+                        entities.0.remove(&pos.0);
                         (*pos).0 = path[1];
                         posi = xy_to_index(pos.0);
-                        entities.0[posi] = Some(entity);
+                        entities.0.insert(pos.0, entity);
                     }
                 }
 

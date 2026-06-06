@@ -93,8 +93,8 @@ where
 }
 
 fn render_map_in_view(view: &MapView, map: &Map, term: &mut Terminal) {
-    for (i, seen) in view.0.iter().enumerate() {
-        if *seen {
+    for (i, seen) in view.0.bits().iter().enumerate() {
+        if seen {
             // NOTE: Assumes map size = view size = GAME_SIZE constant
             let tile = map.0[i];
 
@@ -109,13 +109,13 @@ where
     Actors: Iterator<Item = (&'a Renderable, &'a Position)>,
 {
     for (renderable, pos) in actors {
-        if view.0.is_empty() {
+        if view.0.bits().is_empty() {
             return;
         }
         // NOTE: Assumes map size = GAME_SIZE constant
         let i = xy_to_index(pos.0);
 
-        if view.0[i] {
+        if view.0.get_index(i) {
             term.put_tile(pos.0, Tile::from(renderable));
         }
     }
