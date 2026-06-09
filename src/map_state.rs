@@ -23,7 +23,7 @@ pub struct PathBlocker;
 #[derive(Resource, Default, Clone, Debug)]
 pub struct PathingData(pub PathMap2d);
 
-#[derive(Resource, Default, Clone, Debug)]
+#[derive(Resource, Default, Clone, Debug, Deref, DerefMut)]
 pub struct MapActors(pub HashMap<IVec2, Entity>);
 
 fn update_map_state_system(

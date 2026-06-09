@@ -42,7 +42,7 @@ fn monster_ai(
             let player_posi = xy_to_index(player_pos);
 
             // If Monster can see the player
-            if view.0.get_index(player_posi) {
+            if view.grid.get_index(player_posi) {
                 // Open the player and monster positions so pathfinding doesn't see them as obstacles
                 pathing.0.obstacles.set_index(posi, false);
                 pathing.0.obstacles.set_index(player_posi, false);

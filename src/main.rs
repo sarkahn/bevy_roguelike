@@ -21,11 +21,13 @@ use map::Map;
 
 use crate::{
     combat::ActorKilled,
-    components::{LogMessage, Redraw},
-    inventory::PickupItem,
+    components::{LogMessage, Position},
     map::MapGenSettings,
     map_state::{MapActors, PathingData},
     player::Player,
+    render::Redraw,
+    state_animation::Animation,
+    state_inventory::PickupItem,
     turn_system::Actor,
 };
 
@@ -33,13 +35,15 @@ mod combat;
 mod components;
 mod entities;
 mod input;
-mod inventory;
 mod items;
 mod map;
 mod map_state;
 mod monster;
 mod player;
 mod render;
+mod state_animation;
+mod state_inventory;
+mod state_targeting;
 mod turn_system;
 mod ui;
 mod visibility;
@@ -93,7 +97,7 @@ fn setup(mut commands: Commands) {
 fn debuggo(
     mut commands: Commands,
     input: Res<ButtonInput<KeyCode>>,
-    q_player: Option<Single<Entity, With<Player>>>,
+    q_player: Option<Single<(Entity, &Position), With<Player>>>,
 ) {
     if input.pressed(KeyCode::ControlLeft) && input.just_pressed(KeyCode::KeyZ) {
         commands.write_message(AppExit::Success);
@@ -102,9 +106,8 @@ fn debuggo(
     if input.just_pressed(KeyCode::KeyR) {
         commands.write_message(Reset);
     }
-
-    if input.just_pressed(KeyCode::KeyG) {
-        if let Some(player) = q_player.map(|v| v.into_inner()) {
+    if let Some((player, pos)) = q_player.map(|v| v.into_inner()) {
+        if input.just_pressed(KeyCode::KeyG) {
             let item = if rand::random_bool(0.5) {
                 commands.spawn_scene(items::minor_healing_potion()).id()
             } else {
@@ -113,6 +116,17 @@ fn debuggo(
             commands.trigger(PickupItem {
                 item,
                 picker_upper: player,
+            });
+        }
+
+        if input.just_pressed(KeyCode::KeyM) {
+            commands.spawn(Animation::Missile {
+                start: pos.0,
+                end: pos.0 + IVec2::new(rand::random_range(-5..=5), rand::random_range(-5..=5)),
+                glyph: 'm',
+                time_secs: 1.0,
+                fg_color: Some(color::css::DARK_RED),
+                bg_color: None,
             });
         }
     }
@@ -143,10 +157,14 @@ fn reset(
             commands.spawn_scene(entities::orc(p));
         }
         if c == '¡' {
-            commands.spawn_scene(items::minor_healing_potion_pos(p));
+            commands
+                .spawn_scene(items::minor_healing_potion())
+                .insert(Position(p));
         }
         if c == ')' {
-            commands.spawn_scene(items::scroll_of_magic_missile_pos(p));
+            commands
+                .spawn_scene(items::scroll_of_magic_missile())
+                .insert(Position(p));
         }
     }
 
@@ -159,6 +177,7 @@ pub enum GameState {
     Exploring,
     Inventory,
     Targeting,
+    Animating,
 }
 
 fn main() {
@@ -173,7 +192,9 @@ fn main() {
         .init_resource::<PathingData>()
         .init_resource::<MapActors>()
         .add_plugins(ui::UiPlugin)
-        .add_plugins(inventory::InventoryPlugin)
+        .add_plugins(state_targeting::TargetingPlugin)
+        .add_plugins(state_animation::AnimationPlugin)
+        .add_plugins(state_inventory::InventoryPlugin)
         .add_plugins(items::ItemsPlugin)
         .add_plugins(visibility::VisiblityPlugin)
         .add_plugins(combat::CombatPlugin)

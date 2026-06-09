@@ -3,18 +3,19 @@ use bevy_ascii_terminal::{BoxStyle, Pivot, Terminal, TerminalStringBuilder};
 
 use crate::{
     GameState, GameTerminal,
-    components::{BeginTargeting, LogMessage, Position, Redraw, TargetingRange},
+    components::{LogMessage, Position},
     input,
-    items::{Castable, Drinkable, UseTargetedItem},
+    items::{Drinkable, UseItem},
     player::Player,
-    render,
+    render::{self, Redraw},
+    state_targeting::{BeginTargeting, TargetingRange},
 };
 
 #[derive(Component, Debug)]
 #[relationship(relationship_target = HeldItems)]
 pub struct ItemHeldBy(pub Entity);
 
-/// Items held by an entity. Shouldn't be modified directly, use [ItemHeldBy] to manage
+/// Items held by an entity. Should be treated as read-only, use [ItemHeldBy] to manage
 /// inventories
 #[derive(Component, Debug, Deref)]
 #[relationship_target(relationship = ItemHeldBy)]
@@ -48,7 +49,7 @@ fn inventory_start(
     q_name: Query<&Name>,
     mut commands: Commands,
 ) {
-    let Some(inventory) = inventory.map(|i| i.into_inner()) else {
+    let Some(_) = inventory.map(|i| i.into_inner()) else {
         commands.write_message(LogMessage("You have no items.".to_owned()));
         commands.set_state(GameState::Exploring);
         return;
@@ -83,8 +84,8 @@ fn inventory_update(
     inventory: Option<Single<&HeldItems, With<Player>>>,
     q_name: Query<&Name>,
     q_player: Single<Entity, With<Player>>,
-    q_drinkable: Query<Entity, With<Drinkable>>,
-    q_castable: Query<(Entity, &TargetingRange), With<Castable>>,
+    q_drinkable: Query<&Drinkable>,
+    q_targetable: Query<&TargetingRange>,
     mut commands: Commands,
 ) {
     if input.just_pressed(KeyCode::Escape) {
@@ -115,23 +116,19 @@ fn inventory_update(
 
     if input.any_just_pressed(input::ACCEPT.iter().cloned()) {
         let player = q_player.into_inner();
-
-        if let Ok((_, range)) = q_castable.get(selected_item) {
+        if let Ok(ranged) = q_targetable.get(selected_item) {
             commands.trigger(BeginTargeting {
                 source: player,
-                range: range.0,
+                range: ranged.0,
                 effect_haver: selected_item,
             });
-        }
-        if q_drinkable.get(selected_item).is_ok() {
-            commands.trigger(UseTargetedItem {
+            commands.set_state(GameState::Targeting);
+        } else if q_drinkable.get(selected_item).is_ok() {
+            commands.trigger(UseItem {
                 user: player,
-                target: player,
+                targets: Vec::new(),
                 item: selected_item,
             });
-
-            commands.set_state(GameState::Exploring);
-            commands.write_message(Redraw);
         }
 
         return;
@@ -139,6 +136,7 @@ fn inventory_update(
 
     let piv = term.pivot();
     term.set_pivot(Pivot::LeftTop);
+
     for (i, iname) in inventory
         .iter()
         .map(|i| q_name.get(i).expect("Missing item name"))
@@ -153,6 +151,7 @@ fn inventory_update(
             term.put_string([INV_POS.x, INV_POS.y + i], iname.as_str());
         }
     }
+
     term.set_pivot(piv);
 }
 

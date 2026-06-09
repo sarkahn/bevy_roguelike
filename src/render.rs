@@ -2,15 +2,32 @@ use bevy::prelude::*;
 use bevy_ascii_terminal::*;
 
 use crate::{
-    GAME_SIZE, GameTerminal, Reset,
+    GAME_SIZE, GameState, GameTerminal, Reset,
     combat::ActorKilled,
-    components::{Position, Redraw, Renderable},
+    components::{Position, Renderable},
     index_to_xy,
     map::{Map, MapTile},
     player::Player,
+    state_animation::Animation,
     visibility::{MapMemory, MapView},
     xy_to_index,
 };
+
+/// Plugin managing game rendering systems
+pub struct RenderPlugin;
+
+#[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
+pub struct RenderSystem;
+
+impl Plugin for RenderPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(Last, render.run_if(should_render).in_set(RenderSystem));
+    }
+}
+
+/// A message to indicate the game terminal should redraw at the end of the frame
+#[derive(Message)]
+pub struct Redraw;
 
 pub const WALL_COLOR: LinearRgba = LinearRgba {
     red: 0.866,
@@ -24,14 +41,6 @@ pub const FLOOR_COLOR: LinearRgba = LinearRgba {
     blue: 0.325,
     alpha: 1.0,
 };
-
-/// Plugin managing game rendering systems
-pub struct RenderPlugin;
-impl Plugin for RenderPlugin {
-    fn build(&self, app: &mut App) {
-        app.add_systems(Last, render.run_if(should_render));
-    }
-}
 
 fn render(
     q_entities: Query<(&Renderable, &Position), Without<Player>>,
@@ -93,9 +102,9 @@ where
 }
 
 fn render_map_in_view(view: &MapView, map: &Map, term: &mut Terminal) {
-    for (i, seen) in view.0.bits().iter().enumerate() {
+    // TODO: Don't assume map size = view size = game size
+    for (i, seen) in view.grid.bits().iter().enumerate() {
         if seen {
-            // NOTE: Assumes map size = view size = GAME_SIZE constant
             let tile = map.0[i];
 
             let p = index_to_xy(i);
@@ -108,22 +117,22 @@ fn render_actors_in_view<'a, Actors>(view: &MapView, term: &mut Terminal, actors
 where
     Actors: Iterator<Item = (&'a Renderable, &'a Position)>,
 {
+    // TODO: Don't assume map size = view size = game size
     for (renderable, pos) in actors {
-        if view.0.bits().is_empty() {
+        if view.grid.bits().is_empty() {
             return;
         }
-        // NOTE: Assumes map size = GAME_SIZE constant
         let i = xy_to_index(pos.0);
 
-        if view.0.get_index(i) {
+        if view.grid.get_index(i) {
             term.put_tile(pos.0, Tile::from(renderable));
         }
     }
 }
 
 fn render_memory(memory: &MapMemory, map: &Map, term: &mut Terminal) {
-    for (i, remembered) in memory.0.iter().enumerate() {
-        if *remembered {
+    for (i, remembered) in memory.bits().iter().enumerate() {
+        if remembered {
             let tile = map.0[i];
             let mut tile: Tile = tile.into();
             tile.fg_color = greyscale(tile.fg_color);
@@ -181,6 +190,8 @@ fn should_render(
     q_map_changed: Query<&Map, Changed<Map>>,
     killed: MessageReader<ActorKilled>,
     reset: MessageReader<Reset>,
+    q_anim: Query<&Animation>,
+    game_state: Res<State<GameState>>,
     redraw: MessageReader<Redraw>,
 ) -> bool {
     let entities_changed = !q_entities_changed.is_empty();
@@ -188,6 +199,12 @@ fn should_render(
     let entity_killed = !killed.is_empty();
     let map_reset = !reset.is_empty();
     let redraw = !redraw.is_empty();
+    let anim = matches!(**game_state, GameState::Animating) && !q_anim.is_empty();
 
-    map_changed || entities_changed || entity_killed || map_reset || redraw
+    // println!(
+    //     "RENDERSTATE: Entities {}, map {}, killed {}, reset {}, redraw {}, anim {}",
+    //     entities_changed, map_changed, entity_killed, map_reset, redraw, anim
+    // );
+
+    map_changed || entities_changed || entity_killed || map_reset || redraw || anim
 }

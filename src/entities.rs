@@ -5,7 +5,7 @@ use crate::{
     monster::Monster,
     player::Player,
     turn_system::{Actor, Energy, Speed},
-    visibility::{MapMemory, MapView, ViewRange},
+    visibility::{MapMemory, MapView},
 };
 use bevy::prelude::*;
 use bevy_ascii_terminal::color::*;
@@ -32,8 +32,9 @@ pub fn base_monster() -> impl Scene {
     bsn! {
         movable_guy()
         combat_guy()
-        MapView
-        ViewRange(4)
+        MapView {
+            range: 4,
+        }
         PathBlocker
         Monster
     }
@@ -78,8 +79,9 @@ pub fn player(pos: IVec2) -> impl Scene {
         Defense { current: 1, max: 1 }
         Strength { current: 3, max: 3 }
         Speed(25)
-        ViewRange(5)
-        MapView
+        MapView {
+            range: 5
+        }
         MapMemory
         Position(pos)
     }

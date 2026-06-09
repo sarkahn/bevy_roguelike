@@ -4,10 +4,10 @@ use crate::{
     GameState,
     combat::{AttackEvent, Strength},
     components::*,
-    inventory::PickupItem,
     items::Item,
     map_state::{MapActors, PathingData},
     monster::Monster,
+    state_inventory::PickupItem,
     turn_system::{Energy, TakingATurn},
     xy_to_index,
 };
