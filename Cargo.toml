@@ -8,19 +8,15 @@ anyhow = "1.0.102"
 rand = "0.10.1"
 
 [dependencies.bevy]
-git = "https://github.com/bevyengine/bevy"
-rev = "99d2e972d06a3a688aa1ebca6ce5759d784821c5"
+version = "0.19"
 default-features = false
 features = ["std", "bevy_render", "bevy_winit", "x11", "bevy_scene", "bevy_log", "bevy_state"]
 
 [dependencies.bevy_ascii_terminal]
-git = "https://github.com/sarkahn/bevy_ascii_terminal"
-rev = "cd1d638cb0cfd85c484d6932eccf3bc04196167e"
+version = "0.19"
 
 [dependencies.adam_fov_rs]
-git = "https://github.com/sarkahn/adam_fov_rs"
-rev = "8cfdd64c1708a9d2574e7a9a66bf708024b952d7"
-
+version = "0.5"
 
 [dependencies.sark_pathfinding]
 git = "https://github.com/sarkahn/sark_pathfinding_rs"
